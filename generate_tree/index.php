@@ -1,103 +1,187 @@
 <?php
 
-ini_set('memory_limit','512M');
-$no_gui = TRUE;
+require_once('../config/required.php');
+require_once('../config/optional.php');
 
-require_once('../components/header.php');
+if(!DEVELOPMENT || SHOW_ERRORS_IN_PRODUCTION){
+	error_reporting(E_ALL | E_STRICT);
+	ini_set('display_errors', 1);
+}
 
-if(!array_key_exists('payload',$_POST) || $_POST['payload']==''){
+function alert($status,$message){
+
+	echo '<div class="alert alert-'.$status.'">'.$message.'</div>';
+
+	if($status=='danger')
+		exit();
+
+}
+
+if(!file_exists(WORKING_LOCATION)){ // Create target directory
+
+	mkdir(WORKING_LOCATION);
+
+	if(!file_exists(WORKING_LOCATION))
+		alert('danger','Unable to create directory <i>'.WORKING_LOCATION.'</i>. Please check your config and permissions');
+
+}
+
+
+if(!array_key_exists('file',$_FILES) || empty($_FILES['file']) || $_FILES['file']['error'] != 0){
 	header('Location: '.LINK);
-	exit('No data specified');
-}
-
-[$tree,$include_generic_names_value,$include_scientific_names_value,$include_authors_value] = json_decode($_POST['payload'],TRUE);
-
-if(!$tree){
-	header('Location: '.LINK);
-	exit('No data specified.');
+	alert('danger','No data specified');
 }
 
 
-//$result[$phylum][$class][$order][$family][$genus][$specificEpithet] = $payload;
+do
+	$file_name = rand(0,time());
+while(file_exists(WORKING_LOCATION.$file_name.'/'));
 
-$result_tree = [];
-foreach($tree as $kingdom => $phylum_data){
+$target_dir = WORKING_LOCATION.$file_name.'/';
+$target_file_extension = explode('.', $_FILES['file']['name']);
+$target_file_extension = end($target_file_extension);
+$target_file = $_FILES['file']['tmp_name'];
+$delete_target = $target_file;
 
-	$file_content = json_decode(file_get_contents($compiled_path.$kingdom.$compiled_prefix),TRUE);
 
-	if(is_string($phylum_data))
-		$result_tree[$kingdom] = $file_content;
+if($target_file_extension=='zip'){
 
-	else {
+	$zip = new ZipArchive;
+	$result = $zip->open($_FILES['file']['tmp_name']);
+	if($result !== TRUE)
+		alert('danger','Failed to open the archive');
 
-		$result_tree[$kingdom] = [];
+	$zip->extractTo($target_dir);
+	$zip->close();
 
-		foreach($phylum_data as $phylum => $class_data){
-
-			if(is_string($class_data))
-				$result_tree[$kingdom][$phylum] = $file_content[$phylum];
-
-			else {
-
-				$result_tree[$kingdom][$phylum] = [];
-
-				foreach($class_data as $order => $order_data)
-					if(is_string($order_data))
-						$result_tree[$kingdom][$phylum][$order] = $file_content[$phylum][$order];
-
-			}
-
-		}
-
-	}
+	$file_name = glob($target_dir.'taxa_*.txt');
+	$target_file = $file_name[0];
+	$delete_target = $target_dir;
 
 }
-unset($tree);
-unset($file_content);
+
+elseif($target_file_extension!='csv' && $target_file_extension!='txt')
+	alert('danger','The uploaded file should be a .zip archive, a .csv or a .txt file');
 
 
-header("Content-type: text/csv");
-header("Content-Disposition: attachment; filename=tree.csv");
-header("Pragma: no-cache");
-header("Expires: 0");
+
+$handle = fopen($target_file, "r");
+if(!$handle)
+	alert('danger','Failed to read the file');
 
 
-$result = '';
-echo "Kingdom\tPhylum\tClass\tOrder\tFamily\tGenus\tSpecies";
+$ranks = [
+	'kingdom',
+	'subkingdom',
+	'infrakingdom',
+	'superdivision',
+	'division',
+	'subdivision',
+	'phylum',
+	'subphylum',
+	'superclass',
+	'class',
+	'subclass',
+	'infraclass',
+	'superorder',
+	'order',
+	'suborder',
+	'infraorder',
+	'superfamily',
+	'family',
+	'subfamily',
+	'tribe',
+	'subtribe',
+	'genus',
+	'subgenus',
+	'section',
+	'subsection',
+	'species',
+	'subspecies',
+	'variety',
+	'subvariety',
+	'forma',
+	'subforma',
+];
 
-if($include_generic_names_value)
-	echo "\tSpecies Common Name";
 
-if($include_scientific_names_value)
-	echo "\tScientific Name";
+$cols = fgets($handle);
+$cols = explode("\t",$cols);
 
-if($include_authors_value)
-	echo "\tSpecies Author";
-
-echo "\n";
-
-foreach($result_tree as $kingdom => $kingdom_data)//TODO: split data into several files and zip them
-	foreach($kingdom_data as $phylum => $phylum_data)
-		foreach($phylum_data as $class => $class_data)
-			foreach($class_data as $order => $order_data)
-				foreach($order_data as $family => $family_data)
-					foreach($family_data as $genus => $genus_data)
-						foreach($genus_data as $species => $species_data){
-
-							$line = $kingdom."\t".$phylum."\t".$class."\t".$order."\t".$family."\t".$genus."\t".$species;
-
-							if($include_generic_names_value)
-								$line .= "\t".$species_data[0];
-
-							if($include_scientific_names_value)
-								$line .= "\t".$species_data[1];
-
-							if($include_authors_value)
-								$line .= "\t".$species_data[2];
-
-							$result .= $line."\n";
+foreach($cols as &$col)
+	$col = trim($col);
 
 
-						}
+$cols = array_flip($cols);
 
-echo $result;
+
+$column_delimiter = "_";
+$line_delimiter = "<br>";
+
+//$column_delimiter = "\t";
+//$line_delimiter = "\n";
+
+//Set headers for file to be downloadable as CSV
+//header("Content-type: text/csv");
+//header("Content-Disposition: attachment; filename=tree.csv");
+//header("Pragma: no-cache");
+//header("Expires: 0");
+
+//print the header line
+$line = '';
+foreach($ranks as $rank){
+
+	if($line!='')
+		$line .= $column_delimiter;
+
+	$rank = ucfirst($rank);
+
+	$line .= $rank.$column_delimiter.$rank.' Author';
+
+}
+echo $line.$line_delimiter;
+
+
+//build the tree from raw CSV file
+while(($line = fgets($handle)) !== false) {
+
+	$line = explode("\t",$line);
+
+	if($line[$cols['taxonomicStatus']]!=='accepted' && $line[$cols['taxonomicStatus']]!=='valid')
+		continue;
+
+
+
+	$parents = $line[$cols['higherClassification']];
+	if(strlen($parents)>2)
+		$parents .= '|';
+	else
+		$parents = '';
+	$parents = explode('|',$parents);
+	$parents = implode($column_delimiter.$column_delimiter,$parents);
+
+	echo $parents.$line[$cols['scientificName']].$column_delimiter.$line[$cols['scientificNameAuthorship']];
+	
+}
+fclose($handle);
+
+function cleanup($target) {
+
+	if (! is_dir($target))
+		return unlink($target);
+
+	if (substr($target, strlen($target) - 1, 1) != '/')
+		$target .= '/';
+
+	$files = glob($target . '*', GLOB_MARK);
+
+	foreach ($files as $file)
+		if (is_dir($file))
+			cleanup($file);
+		else
+			unlink($file);
+
+	return rmdir($target);
+
+}
+cleanup($delete_target);
