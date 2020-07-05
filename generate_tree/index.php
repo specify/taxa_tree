@@ -1,187 +1,199 @@
 <?php
 
-require_once('../config/required.php');
-require_once('../config/optional.php');
+ini_set('memory_limit', '512M');
 
-if(!DEVELOPMENT || SHOW_ERRORS_IN_PRODUCTION){
-	error_reporting(E_ALL | E_STRICT);
-	ini_set('display_errors', 1);
+require_once('../components/header.php');
+
+
+$kingdoms_location = WORKING_LOCATION . 'kingdoms.json';
+$ranks_location = WORKING_LOCATION . 'ranks.json';
+$rows_location = WORKING_LOCATION . 'rows/';
+
+
+//Get kingdoms
+if(
+	!file_exists($kingdoms_location) ||
+	($kingdoms = file_get_contents($kingdoms_location)) === FALSE ||
+	($kingdoms = json_decode($kingdoms, TRUE)) === FALSE
+)
+	exit('Can\'t read data from kingdoms.json');
+
+
+//Get chosen kingdom
+if(
+	!array_key_exists('kingdom', $_GET) ||
+	!array_key_exists($_GET['kingdom'], $kingdoms)
+)
+	exit('Please specify the kingdom');
+$kingdom = $_GET['kingdom'];
+
+
+//Get ranks
+if(
+	!file_exists($ranks_location) ||
+	($ranks = file_get_contents($ranks_location)) === FALSE ||
+	($ranks = json_decode($ranks, TRUE)) === FALSE ||
+	!array_key_exists($kingdom, $ranks)
+)
+	exit('Can\'t read data from ranks.json');
+
+
+//Get rows
+if(!file_exists($rows_location) ||
+   ($tree = file_get_contents($rows_location . $kingdom . '.json')) === FALSE ||
+   ($tree = json_decode($tree, TRUE)) === FALSE
+)
+	exit('Run data refresh first to generate the ' . $rows_location . $kingdom . '.json files');
+
+
+//Get payload
+if(!array_key_exists('payload', $_POST) || $_POST['payload'] == '')
+	exit('No data specified');
+
+[
+	$choice_tree,
+	$selected_ranks,
+	[
+		$include_common_names,
+		$include_authors,
+		$include_sources
+	]
+] = json_decode($_POST['payload'], TRUE);
+
+if(!$choice_tree)
+	exit('No data specified.');
+
+
+//Configuration
+define('DEBUG', TRUE);
+
+if(DEBUG){
+	$column_separator = ",";
+	$line_separator = "<br>";
+}
+else {
+	$column_separator = "\t";
+	$line_separator = "\n";
+	header("Content-type: text/csv");
+	header("Content-Disposition: attachment; filename=tree.csv");
+	header("Pragma: no-cache");
+	header("Expires: 0");
 }
 
-function alert($status,$message){
 
-	echo '<div class="alert alert-'.$status.'">'.$message.'</div>';
-
-	if($status=='danger')
-		exit();
-
-}
-
-if(!file_exists(WORKING_LOCATION)){ // Create target directory
-
-	mkdir(WORKING_LOCATION);
-
-	if(!file_exists(WORKING_LOCATION))
-		alert('danger','Unable to create directory <i>'.WORKING_LOCATION.'</i>. Please check your config and permissions');
-
-}
-
-
-if(!array_key_exists('file',$_FILES) || empty($_FILES['file']) || $_FILES['file']['error'] != 0){
-	header('Location: '.LINK);
-	alert('danger','No data specified');
-}
-
-
-do
-	$file_name = rand(0,time());
-while(file_exists(WORKING_LOCATION.$file_name.'/'));
-
-$target_dir = WORKING_LOCATION.$file_name.'/';
-$target_file_extension = explode('.', $_FILES['file']['name']);
-$target_file_extension = end($target_file_extension);
-$target_file = $_FILES['file']['tmp_name'];
-$delete_target = $target_file;
-
-
-if($target_file_extension=='zip'){
-
-	$zip = new ZipArchive;
-	$result = $zip->open($_FILES['file']['tmp_name']);
-	if($result !== TRUE)
-		alert('danger','Failed to open the archive');
-
-	$zip->extractTo($target_dir);
-	$zip->close();
-
-	$file_name = glob($target_dir.'taxa_*.txt');
-	$target_file = $file_name[0];
-	$delete_target = $target_dir;
-
-}
-
-elseif($target_file_extension!='csv' && $target_file_extension!='txt')
-	alert('danger','The uploaded file should be a .zip archive, a .csv or a .txt file');
-
-
-
-$handle = fopen($target_file, "r");
-if(!$handle)
-	alert('danger','Failed to read the file');
-
-
-$ranks = [
-	'kingdom',
-	'subkingdom',
-	'infrakingdom',
-	'superdivision',
-	'division',
-	'subdivision',
-	'phylum',
-	'subphylum',
-	'superclass',
-	'class',
-	'subclass',
-	'infraclass',
-	'superorder',
-	'order',
-	'suborder',
-	'infraorder',
-	'superfamily',
-	'family',
-	'subfamily',
-	'tribe',
-	'subtribe',
-	'genus',
-	'subgenus',
-	'section',
-	'subsection',
-	'species',
-	'subspecies',
-	'variety',
-	'subvariety',
-	'forma',
-	'subforma',
-];
-
-
-$cols = fgets($handle);
-$cols = explode("\t",$cols);
-
-foreach($cols as &$col)
-	$col = trim($col);
-
-
-$cols = array_flip($cols);
-
-
-$column_delimiter = "_";
-$line_delimiter = "<br>";
-
-//$column_delimiter = "\t";
-//$line_delimiter = "\n";
-
-//Set headers for file to be downloadable as CSV
-//header("Content-type: text/csv");
-//header("Content-Disposition: attachment; filename=tree.csv");
-//header("Pragma: no-cache");
-//header("Expires: 0");
-
-//print the header line
+//Output the header row
 $line = '';
-foreach($ranks as $rank){
+foreach($ranks[$kingdom] as $rank_data){
 
-	if($line!='')
-		$line .= $column_delimiter;
+	if($line != '')
+		$line .= $column_separator;
 
-	$rank = ucfirst($rank);
+	$rank_name = ucfirst($rank_data[0]);
 
-	$line .= $rank.$column_delimiter.$rank.' Author';
+	$line .= $rank_name;
+
+	if($include_authors)
+		$line .= $column_separator . $rank_name . ' Author';
+
+	if($include_common_names)
+		$line .= $column_separator . $rank_name . ' Common Name';
+
+	if($include_sources)
+		$line .= $column_separator . $rank_name . ' Source';
 
 }
-echo $line.$line_delimiter;
+
+echo $line . $line_separator;
 
 
-//build the tree from raw CSV file
-while(($line = fgets($handle)) !== false) {
+//Output the data
+function show_node(
+	$node,
+	$parent_choice_tree = [],
+	$parent_rank = 10,
+	$line = ''
+){
 
-	$line = explode("\t",$line);
+	global $column_separator;
+	global $line_separator;
+	global $include_authors;
+	global $include_common_names;
+	global $include_sources;
+	global $kingdom;
+	global $ranks;
 
-	if($line[$cols['taxonomicStatus']]!=='accepted' && $line[$cols['taxonomicStatus']]!=='valid')
-		continue;
+	$node_name = $node[0][0];
 
+	if(!is_array($parent_choice_tree) || !array_key_exists($node_name, $parent_choice_tree))
+		return;
 
-
-	$parents = $line[$cols['higherClassification']];
-	if(strlen($parents)>2)
-		$parents .= '|';
+	if($parent_choice_tree !== "true")
+		$choice_tree = $parent_choice_tree[$node_name];
 	else
-		$parents = '';
-	$parents = explode('|',$parents);
-	$parents = implode($column_delimiter.$column_delimiter,$parents);
+		$choice_tree = "true";
 
-	echo $parents.$line[$cols['scientificName']].$column_delimiter.$line[$cols['scientificNameAuthorship']];
-	
+
+	//if($line!='')
+	//	$line .= $column_separator;
+
+	$rank = $node[1];
+
+	if($ranks[$kingdom][$rank][1] != $parent_rank)//if current $rank is not a direct parent of $parent_rank
+		$line .= handle_missing_ranks($rank, $parent_rank);
+	//var_dump($rank,$parent_rank,handle_missing_ranks($rank,$parent_rank));
+
+	$line .= $node[0][0];
+
+	if($include_authors)
+		$line .= $column_separator . $node[0][2];
+
+	if($include_common_names)
+		$line .= $column_separator . $node[0][1];
+
+	if($include_sources)
+		$line .= $column_separator . $node[0][3];
+
+	echo $line . $line_separator;
+
+	foreach($node[2] as $node_data)
+		show_node($node_data, $choice_tree, $rank, $line);
+
 }
-fclose($handle);
 
-function cleanup($target) {
+function handle_missing_ranks(
+	$rank,
+	$target_rank
+){
 
-	if (! is_dir($target))
-		return unlink($target);
+	global $kingdom;
+	global $ranks;
+	global $column_separator;
+	global $include_authors;
+	global $include_common_names;
+	global $include_sources;
 
-	if (substr($target, strlen($target) - 1, 1) != '/')
-		$target .= '/';
+	$count = 1;
 
-	$files = glob($target . '*', GLOB_MARK);
+	if($include_authors)
+		$count++;
 
-	foreach ($files as $file)
-		if (is_dir($file))
-			cleanup($file);
-		else
-			unlink($file);
+	if($include_common_names)
+		$count++;
 
-	return rmdir($target);
+	if($include_sources)
+		$count++;
+
+	$line = str_repeat($column_separator, $count);
+
+	$parent_rank = $ranks[$kingdom][$rank][1];
+
+	if($parent_rank != $target_rank)
+		$line .= handle_missing_ranks($parent_rank, $target_rank);
+
+	return $line;
 
 }
-cleanup($delete_target);
+
+
+foreach($tree as $node_data)
+	show_node($node_data, $choice_tree);

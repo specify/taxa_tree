@@ -1,87 +1,163 @@
 <?php
 
-require_once('config/required.php');
+require_once('components/header.php');
+head();
 
-?><!DOCTYPE html>
-<html lang="en">
-<head>
+$kingdoms_location = WORKING_LOCATION . 'kingdoms.json';
+$ranks_location = WORKING_LOCATION . 'ranks.json';
+$specify_ranks_location = 'static/csv/specify_ranks.csv';
+$rows_location = WORKING_LOCATION.'rows/';
 
-	<meta charset="utf-8">
-	<title>Phylogenetic tree</title>
-	<meta
-			name="viewport"
-			content="width=device-width, initial-scale=1, shrink-to-fit=no">
-	<meta
-			name="author"
-			content="Specify Software">
-	<meta
-			name="robots"
-			content="index,follow">
-	<link
-			rel="icon"
-			type="image/png"
-			sizes="150x150"
-			href="https://sp7demofish.specifycloud.org/static/img/fav_icon.png">
-	<link
-			rel="stylesheet"
-			href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.0/css/bootstrap.min.css"
-			integrity="sha256-aAr2Zpq8MZ+YA/D6JtRD3xtrwpEz2IqOS+pWD/7XKIw="
-			crossorigin="anonymous"/>
+//Get kingdoms
+if(
+	!file_exists($kingdoms_location) ||
+	($kingdoms=file_get_contents($kingdoms_location))===FALSE ||
+	($kingdoms=json_decode($kingdoms, TRUE))===FALSE
+)
+	exit('Can\'t read data from kingdoms.json'); ?>
 
-</head>
-<body class="mb-4">
 
-<div class="container mt-5 mb-5">
+<h1>Taxonomic tree generator</h1> <?php
 
-	<h1>Phylogenetic tree generator</h1>
+// Kingdom selection
+if(!array_key_exists('kingdom',$_GET) || !array_key_exists($_GET['kingdom'],$kingdoms)){ ?>
 
-	<h2>Step 1</h2>
-	<p>
-		Got to
-		<a href="https://itis.gov/servlet/" target="_blank">ITIS.GOV</a>
-		website and conduct a search on taxonomic information.<br>
-		You can also use <a href="https://itis.gov/advanced_search.html" target="_blank">advanced search tool</a>
-	</p>
+	<h3>Step 1: Select the kingdom</h3>
 
-	<h2>Step 2</h2>
-	<p>
-		After finding necessary information, you will be redirected to a page that looks similar to
-		<a href="https://itis.gov/servlet/SingleRpt/SingleRpt?search_topic=TSN&search_value=513023#null" target="_blank">this one</a>
-		<br>Press the "Download DwC-A" button:<br>
-		<img
-				src="<?=LINK?>static/images/step_2.png"
-				class="img-fluid"
-				alt="Press the 'Download DwC-A' button at the top of the page">
-	</p>
+	<ul> <?php
 
-	<h2>Step 3</h2>
-	<p>
-		After you file is generated, you will be prompted to download either '.zip' or '.csv' file.
-		Press on the name of that file to initialize the download process:<br>
-		<img
-				src="<?=LINK?>static/images/step_3.png"
-				class="img-fluid"
-				alt="Press on the name of that file to initialize the download process">
+		foreach($kingdoms as $kingdom_id => $kingdom_name)
+			echo '<li><a href="'.LINK.'?kingdom='.$kingdom_id.'">'.$kingdom_name.'</a></li>'; ?>
 
-	</p>
+	</ul> <?php
 
-	<h2>Step 4</h2>
+	exit();
 
-	<form action="<?=LINK?>generate_tree/" method="POST" enctype="multipart/form-data">
+}
+$kingdom = $_GET['kingdom'];
 
-		<div class="form-group">
-			<label for="file">Import the resulting .zip or .csv file bellow and press 'Get results'</label>
-			<input type="file" accept=".zip,.csv,.txt" class="form-control-file" name="file">
-		</div>
 
-		<button class="btn btn-success btn-lg" type="submit">Get results</button>
+//Get the ranks
+if(
+	!file_exists($ranks_location) ||
+	($ranks=file_get_contents($ranks_location))===FALSE ||
+	($ranks=json_decode($ranks, TRUE))===FALSE ||
+	!array_key_exists($kingdom,$ranks)
+)
+	exit('Can\'t read data from ranks.json');
 
-	</form><br>
 
-	<h2>Step 5</h2>
-	<p>
-		You will get a CSV file that can be imported into Specify's Workbench tool.<br>
-		Refer to documentation on how to do that.
-	</p>
+//Get Specify ranks
+if(
+	!file_exists($specify_ranks_location) ||
+	($specify_ranks=file_get_contents($specify_ranks_location))===FALSE ||
+	count($specify_ranks=explode("\n",$specify_ranks))==0
+)
+	exit('Can\'t read data from specify_ranks.json');
 
+
+//Get the rows
+if(!file_exists($rows_location) ||
+   ($tree = file_get_contents($rows_location . $kingdom . '.json'))===FALSE ||
+   ($tree=json_decode($tree, TRUE))===FALSE
+)
+	exit('Run data refresh first to generate the '.$rows_location . $kingdom.'.json files');
+
+
+//Show the tree and other options
+$arrow_location = LINK.'static/svg/arrow.svg';
+function checkbox($name,$collapsable=TRUE){
+	global $arrow_location;
+
+	if($collapsable)
+		$collapse = '<button style="background-image: url('.$arrow_location.')" class="arrow"></button>';
+	else
+		$collapse = '';
+
+	return '<button class="checkbox"></button>
+	'.$collapse. $name.'';
+
+} ?>
+
+<h3>Step 2: Select the nodes you want to have in your database</h3>
+
+<ul class="pl-0" id="root"> <?php
+
+	$levels_to_show = 4;
+
+	function show_node($node,$level=0){
+
+		global $levels_to_show;
+
+		$node_name = $node[0][0];
+
+		$show_children = $level<$levels_to_show;
+
+		echo '<li data-name="'.$node_name.'">'.checkbox(ucfirst($node_name),$show_children);
+
+		if($show_children){ ?>
+			<ul class="collapsed"> <?php
+
+				foreach($node[2] as $node_data)
+					show_node($node_data,$level+1); ?>
+
+			</ul> <?php
+		}
+
+	}
+
+	foreach($tree as $node_data)
+		show_node($node_data); ?>
+
+</ul>
+
+<h3>Step 3: Select the taxonomic levels that are present in your database</h3><?php
+
+$new_specify_ranks = [];
+foreach($specify_ranks as $rank){
+
+	$rank = explode(',',$rank);
+	$new_specify_ranks[$rank[0]] = count($rank)!=1;
+
+}
+$specify_ranks = $new_specify_ranks;
+
+
+foreach($ranks[$kingdom] as $rank_id => $rank){
+
+	if(!array_key_exists($rank[0],$specify_ranks))
+		continue;
+
+	$checked = '';
+	if($specify_ranks[$rank[0]])
+		$checked = ' checked'; ?>
+
+	<div class="custom-control custom-checkbox">
+		<input type="checkbox" class="custom-control-input rank" id="rank_<?=$rank_id?>" <?=$checked?>>
+		<label class="custom-control-label" for="rank_<?=$rank_id?>"><?=ucfirst($rank[0])?></label>
+	</div> <?php
+
+} ?>
+
+<h3>Step 4: Select which optional data should be present</h3>
+
+<div class="custom-control custom-checkbox">
+	<input type="checkbox" class="custom-control-input option" id="option_1">
+	<label class="custom-control-label" for="option_1">Include Common Names</label>
 </div>
+
+<div class="custom-control custom-checkbox">
+	<input type="checkbox" class="custom-control-input option" id="option_2">
+	<label class="custom-control-label" for="option_2">Include Authors</label>
+</div>
+
+<div class="custom-control custom-checkbox mb-4">
+	<input type="checkbox" class="custom-control-input option" id="option_3">
+	<label class="custom-control-label" for="option_3">Include Sources</label>
+</div>
+
+<form action="<?=LINK?>generate_tree/?kingdom=<?=$kingdom?>" method="POST" class="mt-4">
+	<input type="hidden" id="payload_field" name="payload">
+	<button class="btn btn-success btn-lg" id="get_result_button" type="button">Get results</button>
+</form>
+<script src="<?=LINK?>static/js/main<?=JS?>"></script>
