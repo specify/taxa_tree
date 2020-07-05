@@ -53,7 +53,7 @@ if(
 	($specify_ranks=file_get_contents($specify_ranks_location))===FALSE ||
 	count($specify_ranks=explode("\n",$specify_ranks))==0
 )
-	exit('Can\'t read data from specify_ranks.json');
+	exit('Can\'t read data from specify_ranks.csv');
 
 
 //Get the rows
@@ -158,6 +158,6 @@ foreach($ranks[$kingdom] as $rank_id => $rank){
 
 <form action="<?=LINK?>generate_tree/?kingdom=<?=$kingdom?>" method="POST" class="mt-4">
 	<input type="hidden" id="payload_field" name="payload">
-	<button class="btn btn-success btn-lg" id="get_result_button" type="button">Get results</button>
+	<button class="btn btn-success btn-lg" id="get_result_button" type="submit">Get results</button>
 </form>
 <script src="<?=LINK?>static/js/main<?=JS?>"></script>
