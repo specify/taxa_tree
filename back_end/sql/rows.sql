@@ -18,4 +18,5 @@ LEFT JOIN `reference_links` `source_reference`
 LEFT JOIN `publications` `source`
        ON `source_reference`.`documentation_id` = `source`.`publication_id`
       AND LENGTH(`source`.`publication_name`)<64
-WHERE     `unit`.`name_usage` = 'valid';
+WHERE     `unit`.`name_usage` = 'valid'
+       OR `unit`.`name_usage` = 'accepted';

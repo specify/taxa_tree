@@ -2,6 +2,7 @@
 
 require_once('components/header.php');
 head();
+ini_set('memory_limit', '512M');
 
 $kingdoms_location = WORKING_LOCATION . 'kingdoms.json';
 $ranks_location = WORKING_LOCATION . 'ranks.json';
@@ -151,9 +152,14 @@ foreach($ranks[$kingdom] as $rank_id => $rank){
 	<label class="custom-control-label" for="option_2">Include Authors</label>
 </div>
 
-<div class="custom-control custom-checkbox mb-4">
+<div class="custom-control custom-checkbox">
 	<input type="checkbox" class="custom-control-input option" id="option_3">
 	<label class="custom-control-label" for="option_3">Include Sources</label>
+</div>
+
+<div class="custom-control custom-checkbox mb-4">
+	<input type="checkbox" class="custom-control-input option" id="option_4">
+	<label class="custom-control-label" for="option_4">Replace empty sources with links to <a href="https://itis.gov">itis.gov</a></label>
 </div>
 
 <form action="<?=LINK?>generate_tree/?kingdom=<?=$kingdom?>" method="POST" class="mt-4">

@@ -143,7 +143,8 @@ foreach($rows as $kingdom_id => &$kingdom_data){
 }
 
 $rows_destination = WORKING_LOCATION.'rows/';
-mkdir($rows_destination);
+if(!file_exists($rows_destination))
+	mkdir($rows_destination);
 
 foreach($rows as $kingdom_id => $rows_data)
 	file_put_contents($rows_destination . $kingdom_id.'.json', json_encode($rows_data));
