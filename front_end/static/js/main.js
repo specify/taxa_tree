@@ -26,7 +26,8 @@ $( function () {
 			let rank = el.attr('id');
 			rank = rank.replace('rank_','');
 
-			ranks_values[rank] = el.is(':checked');
+			if(el.is(':checked'))
+				ranks_values.push(rank);
 
 		});
 

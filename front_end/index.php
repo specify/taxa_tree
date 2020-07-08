@@ -157,9 +157,14 @@ foreach($ranks[$kingdom] as $rank_id => $rank){
 	<label class="custom-control-label" for="option_3">Include Sources</label>
 </div>
 
-<div class="custom-control custom-checkbox mb-4">
+<div class="custom-control custom-checkbox">
 	<input type="checkbox" class="custom-control-input option" id="option_4">
 	<label class="custom-control-label" for="option_4">Replace empty sources with links to <a href="https://itis.gov">itis.gov</a></label>
+</div>
+
+<div class="custom-control custom-checkbox mb-4">
+	<input type="checkbox" class="custom-control-input option" id="option_5" checked>
+	<label class="custom-control-label" for="option_5">Split the resulting tree into CSV files of less than 7000 records</label>
 </div>
 
 <form action="<?=LINK?>generate_tree/?kingdom=<?=$kingdom?>" method="POST" class="mt-4">

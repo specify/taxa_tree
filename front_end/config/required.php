@@ -30,7 +30,7 @@ if(CONFIGURATION==='localhost'){
 
 elseif(CONFIGURATION==='ec2'){
 
-	define('LINK', 'https://maxxxxxdlp.ml/taxons/');
+	define('LINK', 'https://maxxxxxdlp.ml/taxons/front_end/');
 
 	define('WORKING_LOCATION','/home/ec2-user/data/python-taxonomy/');
 

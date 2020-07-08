@@ -69,7 +69,8 @@ if(!array_key_exists('payload', $_POST) || $_POST['payload'] == '')
 		$include_common_names,
 		$include_authors,
 		$include_sources,
-		$fill_in_itis_links
+		$fill_in_itis_links,
+		$use_file_splitter
 	]
 ] = json_decode($_POST['payload'], TRUE);
 
@@ -100,8 +101,6 @@ foreach($required_ranks as $rank_name => $rank_id)
 
 $required_ranks = $new_required_ranks;
 
-//TODO: fix a bug with ProtozoaGranuloreticulosea
-//TODO: fix a bug with kingdoms not getting compiled
 //TODO: implement a file splitter
 
 
@@ -115,15 +114,17 @@ if(DEBUG){
 else {
 	$column_separator = "\t";
 	$line_separator = "\n";
+
+	header("Pragma: no-cache");
+	header("Expires: 0");
 }
 
 if(!file_exists($base_target_dir))
 	mkdir($base_target_dir);
 
 $new_selected_ranks = [];
-foreach($selected_ranks as $rank_name => $is_selected)
-	if($is_selected)
-		$new_selected_ranks[] = $rank_name;
+foreach($selected_ranks as $rank_name)
+	$new_selected_ranks[] = $rank_name;
 $selected_ranks = $new_selected_ranks;
 
 
@@ -146,7 +147,7 @@ foreach($ranks[$kingdom] as $rank_id => $rank_data){
 	if($include_common_names)
 		$line .= $column_separator . $rank_name . ' Common Name';
 
-	if($include_sources)
+	if($include_sources || $fill_in_itis_links)
 		$line .= $column_separator . $rank_name . ' Source';
 
 }
@@ -156,10 +157,14 @@ $header_line = $line . $line_separator;
 //Output the data
 
 $result = '';
-$line_limit = 7000;
 $lines_count = 0;
-$file_id = 1;
+$file_id = 0;
 $target_dir = '';
+
+if($use_file_splitter)
+	$line_limit = 7000;
+else
+	$line_limit = FALSE;
 
 function show_node(
 	$taxon_number,
@@ -210,11 +215,11 @@ function show_node(
 		if($include_common_names)
 			$line .= $column_separator . $node[0][1];
 
-		if($include_sources)
-			if($fill_in_itis_links && $node[0][3]=='')
-				$line .= 'https://itis.gov/servlet/SingleRpt/SingleRpt?search_topic=TSN&search_value='.$taxon_number;
-			else
-				$line .= $column_separator . $node[0][3];
+		$line .= $column_separator;
+		if($include_sources && $node[0][3]!='')
+			$line .= $node[0][3];
+		elseif($fill_in_itis_links && $node[0][3]=='')
+			$line .=LINK.'redirect/?tsn='.$taxon_number;
 
 		$result .= $line . $line_separator;
 
@@ -222,7 +227,7 @@ function show_node(
 
 	}
 
-	if($lines_count >= $line_limit)
+	if($line_limit !== FALSE && $lines_count >= $line_limit)
 		save_result();
 
 	foreach($node[2] as $taxon_number => $node_data)
@@ -284,6 +289,11 @@ function save_result(){
 	global $target_dir;
 	global $lines_count;
 
+	$file_id++;
+
+	if($result=='')
+		return;
+
 	if($target_dir == ''){
 
 		do
@@ -296,11 +306,10 @@ function save_result(){
 
 	file_put_contents($target_dir.'tree_'.$file_id.'.csv',$header_line.$result);
 
-	$file_id++;
 	$result = '';
 	$lines_count = 0;
 
-	if($file_id>5)//TODO: remove this
+	if($file_id>200)
 		exit('File limit reached');
 
 }
@@ -308,21 +317,25 @@ function save_result(){
 foreach($tree as $taxon_number => $node_data)
 	show_node($taxon_number, $node_data, $choice_tree);
 
+save_result();
+
 
 //output the result
 if(DEBUG)
 	echo $result;
 else {
 
-	header("Pragma: no-cache");
-	header("Expires: 0");
+	if($file_id==0)
+		exit('There is no data to return');
 
 	if($file_id==1){//there is only one file to download
 
+		$target_file = $target_dir.'tree_1.csv';
+
 		header("Content-type: text/csv");
 		header("Content-Disposition: attachment; filename=tree.csv");
-		header("Content-length: " . filesize($result));
-		echo file_get_contents($result);
+		header("Content-length: " . filesize($target_file));
+		echo file_get_contents($target_file);
 
 	}
 	else {//zip the files
@@ -334,25 +347,30 @@ else {
 		if($zip -> open($archive_name, ZipArchive::CREATE ) !== TRUE)
 			exit('Failed to zip files');
 
-		foreach(glob($target_dir.'*.csv') as $file_name)
-			$zip->addFile($file_name);
+		foreach(glob($target_dir.'*.csv') as $file_name){
+
+			$basename = explode("/",$file_name);
+			$basename = end($basename);
+
+			$zip->addFile($file_name,$basename);
+
+		}
 
 		$zip ->close();
 
 		header("Content-type: application/zip");
-		header("Content-Disposition: attachment; filename=".$archive_name);
+		header("Content-Disposition: attachment; filename=tree.zip");
 		header("Content-length: " . filesize($archive_name));
 
+		echo file_get_contents($archive_name);
+
 
 	}
 
-	if (connection_aborted()){
 
-		foreach (glob($target_dir.'*.*') as $file_name)
-			unlink($file_name);
+	foreach (glob($target_dir.'*.*') as $file_name)
+		unlink($file_name);
 
-		rmdir($target_dir);
-
-	}
+	rmdir($target_dir);
 
 }
