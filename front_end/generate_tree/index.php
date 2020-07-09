@@ -101,8 +101,6 @@ foreach($required_ranks as $rank_name => $rank_id)
 
 $required_ranks = $new_required_ranks;
 
-//TODO: implement a file splitter
-
 
 //Configuration
 define('DEBUG', FALSE);
@@ -154,8 +152,8 @@ foreach($ranks[$kingdom] as $rank_id => $rank_data){
 
 $header_line = $line . $line_separator;
 
-//Output the data
 
+//Output the data
 $result = '';
 $lines_count = 0;
 $file_id = 0;

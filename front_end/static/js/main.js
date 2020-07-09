@@ -18,7 +18,7 @@ $( function () {
 
 
 		//Get ranks
-		const ranks_values = {};
+		const ranks_values = [];
 
 		$.each(ranks,function(key,element){
 

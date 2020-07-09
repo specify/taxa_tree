@@ -86,6 +86,9 @@ function checkbox($name,$collapsable=TRUE){
 
 	$levels_to_show = 4;
 
+	if($kingdom==3)
+		$levels_to_show = 6;
+
 	function show_node($node,$level=0){
 
 		global $levels_to_show;
