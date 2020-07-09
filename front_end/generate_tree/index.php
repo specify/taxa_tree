@@ -315,13 +315,13 @@ function save_result(){
 foreach($tree as $taxon_number => $node_data)
 	show_node($taxon_number, $node_data, $choice_tree);
 
-save_result();
-
 
 //output the result
 if(DEBUG)
 	echo $result;
 else {
+
+	save_result();
 
 	if($file_id==0)
 		exit('There is no data to return');
