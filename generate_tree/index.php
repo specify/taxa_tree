@@ -72,6 +72,8 @@ if($include_authors)
 if($include_common_names)
 	$header_line .= $column_separator . 'Species Common Name';
 
+$header_line .= $line_separator;
+
 
 //Output the data
 $result = '';
@@ -85,71 +87,93 @@ else
 	$line_limit = FALSE;
 
 
+if($choice_tree==='file'){
 
-$result_tree = [];
-foreach($choice_tree as $kingdom => $phylum_data){
+	$result_tree = [];
 
-	$file_content = json_decode(file_get_contents($compiled_path.$kingdom.$compiled_prefix),TRUE);
+	require_once('../components/compile.php');
+	$file_content = file_get_contents('zip://'.$_FILES['file']['tmp_name'].'#taxa.txt');
 
-	if(is_string($phylum_data))
-		$result_tree[$kingdom] = $file_content;
+	$result_tree = compile_kingdom(FALSE,$file_content);
 
-	else {
+}
+else {
 
-		$result_tree[$kingdom] = [];
+	$result_tree = [];
 
-		foreach($phylum_data as $phylum => $class_data){
+	foreach($choice_tree as $kingdom => $phylum_data){
 
-			if(is_string($class_data))
-				$result_tree[$kingdom][$phylum] = $file_content[$phylum];
+		$file_content = json_decode(file_get_contents($compiled_path.$kingdom.$compiled_prefix),TRUE);
 
-			else {
+		if(is_string($phylum_data))
+			$result_tree[$kingdom] = $file_content[$kingdom];
 
-				$result_tree[$kingdom][$phylum] = [];
+		else {
 
-				foreach($class_data as $order => $order_data)
-					if(is_string($order_data))
-						$result_tree[$kingdom][$phylum][$order] = $file_content[$phylum][$order];
+			$result_tree[$kingdom] = [[],$file_content[$kingdom][1]];
+
+			foreach($phylum_data as $phylum => $class_data){
+
+				if(is_string($class_data))
+					$result_tree[$kingdom][0][$phylum] = $file_content[$kingdom][0][$phylum];
+
+				else {
+
+					$result_tree[$kingdom][$phylum] = [[],$file_content[$kingdom][0][$phylum][1]];
+
+					foreach($class_data as $order => $order_data)
+						if(is_string($order_data))
+							$result_tree[$kingdom][0][$phylum][0][$order] = $file_content[$kingdom][0][$phylum][0][$order];
+
+				}
 
 			}
 
 		}
 
 	}
+	unset($tree);
+	unset($file_content);
 
 }
-unset($tree);
-unset($file_content);
 
-
-foreach($result_tree as $kingdom => $kingdom_data)
-	foreach($kingdom_data as $phylum => $phylum_data)
-		foreach($phylum_data as $class => $class_data)
-			foreach($class_data as $order => $order_data)
-				foreach($order_data as $family => $family_data)
-					foreach($family_data as $genus => $genus_data)
-						foreach($genus_data as $species => $species_data){
+foreach($result_tree as $kingdom => [$kingdom_data,$kingdom_id])
+	foreach($kingdom_data as $phylum => [$phylum_data,$phylum_id])
+		foreach($phylum_data as $class => [$class_data,$class_id])
+			foreach($class_data as $order => [$order_data,$order_id])
+				foreach($order_data as $family => [$family_data,$family_id])
+					foreach($family_data as $genus => [$genus_data,$genus_id])
+						foreach($genus_data as $species => [$species_author,$species_id]){
 
 							$line = '';
 							foreach($levels as $level){
 
-								if($level!=='')
+								if($line!=='')
 									$line .= $column_separator;
 
-								$level_name = ucfirst($level);
+								if($level=='kingdom')
+									$line .= ucfirst($$level);
+								else
+									$line .= $$level;
 
-								$header_line .= $$level_name;
+								if($fill_in_links){
 
-								if($fill_in_links)
-									$header_line .= $column_separator.LINK.'redirect/id?'.$species_data[2];
+									$id_field_name = $level.'_id';
+
+									$line .= $column_separator;
+
+									if($$id_field_name!=0)
+										$line .= LINK.'redirect/?id='.$$id_field_name;
+
+								}
 
 							}
 
-							if($include_common_names)
-								$line .= $column_separator.$species_data[0];
-
 							if($include_authors)
-								$line .= $column_separator.$species_data[1];
+								$line .= $column_separator.$species_author;
+
+							if($include_common_names)
+								$line .= $column_separator.$genus;
 
 							$result .= $line.$line_separator;
 
@@ -198,16 +222,14 @@ function save_result(){
 
 }
 
-foreach($tree as $taxon_number => $node_data)
-	show_node($taxon_number, $node_data, $choice_tree);
-
-save_result();
 
 
 //output the result
 if(DEBUG)
-	echo $result;
+	echo $header_line.$result;
 else {
+
+	save_result();
 
 	if($file_id==0)
 		exit('There is no data to return');

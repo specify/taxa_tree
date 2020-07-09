@@ -57,8 +57,6 @@ function prepare_dir($dir,$delete_files=TRUE){
 
 
 
-
-
 prepare_dir($archives_path,FALSE);
 prepare_dir($results_path,FALSE);
 prepare_dir($compiled_path,FALSE);

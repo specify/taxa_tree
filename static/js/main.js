@@ -6,6 +6,7 @@ $( function () {
 	const checkbox = $( '.checkbox' );
 	const root = $( '#root' );
 	const payload_field = $( '#payload_field' );
+	const file = $( '#file_container input' );
 
 
 	// Sending results
@@ -13,7 +14,12 @@ $( function () {
 
 
 		//Get tree
-		const tree = get_children(root);
+		let tree;
+
+		if(file.val()==='')
+			tree = get_children(root);
+		else
+			tree = 'file';
 
 
 		//Get options

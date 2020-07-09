@@ -58,3 +58,16 @@ li {
 .arrow.rotated {
 	transform: rotate(180deg);
 }
+
+
+#file_container {
+	list-style: none;
+}
+
+#file_container input {
+	overflow: hidden;
+}
+
+#tree_container {
+	width: 100%;
+}
