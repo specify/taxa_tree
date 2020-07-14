@@ -231,6 +231,8 @@ else {
 
 	save_result();
 
+	$result_file_name = 'Catalogue of Life '.date('d.m.Y-H_m_i');
+
 	if($file_id==0)
 		exit('There is no data to return');
 
@@ -239,7 +241,7 @@ else {
 		$target_file = $target_dir.'tree_1.csv';
 
 		header("Content-type: text/csv");
-		header("Content-Disposition: attachment; filename=tree.csv");
+		header("Content-Disposition: attachment; filename=".$result_file_name.".csv");
 		header("Content-length: " . filesize($target_file));
 		echo file_get_contents($target_file);
 
@@ -265,7 +267,7 @@ else {
 		$zip ->close();
 
 		header("Content-type: application/zip");
-		header("Content-Disposition: attachment; filename=tree.zip");
+		header("Content-Disposition: attachment; filename=".$result_file_name.".zip");
 		header("Content-length: " . filesize($archive_name));
 
 		echo file_get_contents($archive_name);

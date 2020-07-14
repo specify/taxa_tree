@@ -1,7 +1,7 @@
 <?php
 
 
-if($_SERVER['HTTP_HOST']=='localhost'){
+if(strpos($_SERVER['HTTP_HOST'],'localhost')!==FALSE){
 	define('DEVELOPMENT',TRUE);
 	define('CONFIGURATION','localhost');
 }
@@ -18,7 +18,7 @@ else {
 if(CONFIGURATION==='localhost'){
 
 	# Address the website would be served on
-	define('LINK', 'http://localhost:80/');
+	define('LINK', 'http://localhost:82/');
 
 	# Set this to an empty folder. This would be the destination for all uncompressed
 	# access.log and other files created in the process.
@@ -30,14 +30,14 @@ if(CONFIGURATION==='localhost'){
 
 elseif(CONFIGURATION==='ec2'){
 
-	define('LINK', 'https://maxxxxxdlp.ml/taxons2/');
+	define('LINK', 'https://specify.maxxxxxdlp.ml/taxa_col/');
 
 	define('WORKING_LOCATION','/home/ec2-user/data/taxons/');
 
 }
 else { # these settings would be used during production
 
-	define('LINK', 'http://biwebdbtest.nhm.ku.edu/taxons2/');
+	define('LINK', 'http://biwebdbtest.nhm.ku.edu/taxa2/');
 
 	define('WORKING_LOCATION','/home/sp7-stats/taxons/');
 
