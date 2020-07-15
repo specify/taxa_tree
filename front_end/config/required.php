@@ -5,7 +5,7 @@ if(strpos($_SERVER['HTTP_HOST'],'localhost')!==FALSE){
 	define('DEVELOPMENT',TRUE);
 	define('CONFIGURATION','localhost');
 }
-elseif($_SERVER['HTTP_HOST']=='maxxxxxdlp.ml'){
+elseif($_SERVER['HTTP_HOST']=='specify.maxxxxxdlp.ml'){
 	define('DEVELOPMENT',TRUE);
 	define('CONFIGURATION','ec2');
 }
@@ -18,7 +18,7 @@ else {
 if(CONFIGURATION==='localhost'){
 
 	# Address the website would be served on
-	define('LINK', 'http://localhost:81/');
+	define('LINK', 'http://localhost:80/');
 
 	# Set this to an empty folder. This would be the destination for all uncompressed
 	# access.log and other files created in the process.
@@ -30,7 +30,7 @@ if(CONFIGURATION==='localhost'){
 
 elseif(CONFIGURATION==='ec2'){
 
-	define('LINK', 'https://specify.maxxxxxdlp.ml/taxa_itis/');
+	define('LINK', 'https://specify.maxxxxxdlp.ml/taxa_itis/front_end/');
 
 	define('WORKING_LOCATION','/home/ec2-user/data/python-taxonomy/');
 
