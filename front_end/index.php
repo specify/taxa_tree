@@ -114,7 +114,7 @@ if(!file_exists($rows_location) ||
 	}
 
 	foreach($tree as $node_data)
-		show_node($node_data);
+		show_node($node_data); ?>
 
 </ul>
 
