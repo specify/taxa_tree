@@ -1,8 +1,20 @@
 USE `ITIS`;
 
-SELECT    `unit`.`tsn`                AS `taxon`,
-          `unit`.`complete_name`      AS `name`,
-          `unit`.`unit_name1`         AS 'common_name',
+SELECT    `unit`.`tsn`                AS 'taxon',
+          IF(
+              `unit`.`unit_name4` IS NOT NULL,
+              `unit`.`unit_name4`,
+              IF(
+                  `unit`.`unit_name3` IS NOT NULL,
+                  `unit`.`unit_name3`,
+                  IF(
+                      `unit`.`unit_name2` IS NOT NULL,
+                      `unit`.`unit_name2`,
+                      `unit`.`unit_name1`
+                      )
+                  )
+          )                           AS 'name',
+          ''                          AS 'common_name',
           `unit`.`parent_tsn`         AS 'parent_taxon',
           `unit`.`rank_id`            AS 'rank_id',
           `unit`.`kingdom_id`         AS 'kingdom_id',

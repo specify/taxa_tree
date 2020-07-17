@@ -163,4 +163,37 @@ $( function () {
 
 	}
 
+
+	// Ranks
+	const defined_ranks = [];//get a list of spans
+	$.each(ranks,function(key,element){
+
+		const el = $(element);
+		const rank_name = el.attr('id');
+
+		defined_ranks[rank_name] = $('.'+rank_name);
+
+	});
+
+	function shadow_rank(rank){//update span's opacity
+
+		const el = $(rank);
+		const rank_name = el.attr('id');
+
+		if(el.is(':checked'))
+			defined_ranks[rank_name].removeClass('shadow');
+		else
+			defined_ranks[rank_name].addClass('shadow');
+
+
+	}
+
+	$.each(ranks,function(key,rank){//update opacity of all span's
+		shadow_rank(rank);
+	});
+
+	ranks.change(function(){//set a listener for a checkbox change
+		shadow_rank($(this));
+	});
+
 } );

@@ -65,6 +65,7 @@ unset($_COOKIE,$_POST,$_GET,$_SERVER,$_FILES);
 ini_set('memory_limit','1024M');
 
 # Read rows
+//tsn name parent rank kingdom author source
 $rows_file = fopen($rows_data, "r");
 fgets($rows_file);
 $rows = [];

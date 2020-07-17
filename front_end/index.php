@@ -65,39 +65,40 @@ if(!file_exists($rows_location) ||
 	exit('Run data refresh first to generate the '.$rows_location . $kingdom.'.json files');
 
 
-//Show the tree and other options
-$arrow_location = LINK.'static/svg/arrow.svg';
-function checkbox($name,$collapsable=TRUE){
-	global $arrow_location;
-
-	if($collapsable)
-		$collapse = '<button style="background-image: url('.$arrow_location.')" class="arrow"></button>';
-	else
-		$collapse = '';
-
-	return '<button class="checkbox"></button>
-	'.$collapse. $name.'';
-
-} ?>
+//Show the tree and other options ?>
 
 <h3>Step 2: Select the nodes you want to have in your database</h3>
 
 <ul class="pl-0" id="root"> <?php
 
-	$levels_to_show = 4;
+	$display_down_to = 60;
+	$arrow_location = LINK.'static/svg/arrow.svg';
 
-	if($kingdom==3)
-		$levels_to_show = 6;
 
 	function show_node($node,$level=0){
 
-		global $levels_to_show;
+		global $display_down_to;
+		global $ranks;
+		global $kingdom;
+		global $arrow_location;
 
 		$node_name = $node[0][0];
+		$capitalized_node_name = ucfirst($node_name);
+		$rank_name = $ranks[$kingdom][$node[1]][0];
+		$rank_id = $node[1];
 
-		$show_children = $level<$levels_to_show;
+		$show_children = $rank_id<$display_down_to;
 
-		echo '<li data-name="'.$node_name.'">'.checkbox(ucfirst($node_name),$show_children);
+		if($show_children)
+			$collapse = '<button style="background-image: url('.$arrow_location.')" class="arrow"></button>';
+		else
+			$collapse = '';
+
+		echo '<li data-name="'.$node_name.'">
+			<button class="checkbox"></button>
+			'.$collapse.
+		    $capitalized_node_name.
+	        '<span class="rank_indicator rank_'.$rank_id.'">'.$rank_name.'</span>';
 
 		if($show_children){ ?>
 			<ul class="collapsed"> <?php
@@ -108,10 +109,12 @@ function checkbox($name,$collapsable=TRUE){
 			</ul> <?php
 		}
 
+		echo '</li>';
+
 	}
 
 	foreach($tree as $node_data)
-		show_node($node_data); ?>
+		show_node($node_data);
 
 </ul>
 

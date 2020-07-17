@@ -27,6 +27,7 @@ li {
 	display: none;
 }
 
+/* Checkboxes */
 .checkbox {
 	width: 20px;
 	height: 20px;
@@ -44,6 +45,7 @@ li {
 }
 
 
+/* Arrows */
 .arrow {
 	width: 38px;
 	height: 20px;
@@ -57,4 +59,18 @@ li {
 
 .arrow.rotated {
 	transform: rotate(180deg);
+}
+
+
+/* Rank Labels */
+span.rank_indicator:before {
+	content: ' (';
+}
+
+span.rank_indicator:after {
+	content: ')';
+}
+
+.shadow {
+	opacity: 0.5;
 }
