@@ -1,6 +1,6 @@
 <?php
 
-ini_set('memory_limit', '1024M');
+ini_set('memory_limit', '3072M');
 ignore_user_abort(true);
 
 require_once('../components/header.php');
@@ -69,7 +69,7 @@ if(!array_key_exists('payload', $_POST) || $_POST['payload'] == '')
 		$include_common_names,
 		$include_authors,
 		$include_sources,
-		$fill_in_itis_links,
+		$fill_in_sources,
 		$use_file_splitter
 	]
 ] = json_decode($_POST['payload'], TRUE);
@@ -145,7 +145,7 @@ foreach($ranks[$kingdom] as $rank_id => $rank_data){
 	if($include_common_names)
 		$line .= $column_separator . $rank_name . ' Common Name';
 
-	if($include_sources || $fill_in_itis_links)
+	if($include_sources || $fill_in_sources)
 		$line .= $column_separator . $rank_name . ' Source';
 
 }
@@ -168,7 +168,7 @@ function show_node(
 	$taxon_number,
 	$node,
 	$parent_choice_tree = [],
-	$parent_rank = 10,
+	$parent_rank = FALSE,
 	$line = ''
 ){
 
@@ -180,10 +180,11 @@ function show_node(
 	global $kingdom;
 	global $ranks;
 	global $selected_ranks;
-	global $fill_in_itis_links;
+	global $fill_in_sources;
 	global $result;
 	global $line_limit;
 	global $lines_count;
+	global $tree;
 
 	$node_name = $node[0][0];
 	$rank = $node[1];
@@ -202,7 +203,7 @@ function show_node(
 		if($line!='')
 			$line .= $column_separator;
 
-		if($ranks[$kingdom][$rank][1] != $parent_rank)//if current $rank is not a direct parent of $parent_rank
+		if($parent_rank !== FALSE && $ranks[$kingdom][$rank][1] != $parent_rank)//if current $rank is not a direct parent of $parent_rank
 			$line .= handle_missing_ranks($rank, $parent_rank);
 
 		$line .= $node_name;
@@ -216,8 +217,8 @@ function show_node(
 		$line .= $column_separator;
 		if($include_sources && $node[0][3]!='')
 			$line .= $node[0][3];
-		elseif($fill_in_itis_links && $node[0][3]=='')
-			$line .=LINK.'redirect/?tsn='.$taxon_number;
+		elseif($fill_in_sources && $node[0][3]=='')
+			$line .='https://gbif.gov/species/'.$taxon_number;
 
 		$result .= $line . $line_separator;
 
@@ -228,8 +229,8 @@ function show_node(
 	if($line_limit !== FALSE && $lines_count >= $line_limit)
 		save_result();
 
-	foreach($node[2] as $taxon_number => $node_data)
-		show_node($taxon_number, $node_data, $choice_tree, $rank, $line);
+	foreach($node[2] as $children_id)
+		show_node($children_id, $tree[$children_id], $choice_tree, $rank, $line);
 
 }
 
@@ -247,6 +248,10 @@ function handle_missing_ranks(
 	global $include_common_names;
 	global $include_sources;
 	global $required_ranks;
+	global $fill_in_sources;
+
+	if($rank==0)
+		return '';
 
 	$line = '';
 	if(!$direct_call && in_array($rank,$selected_ranks)){
@@ -262,7 +267,7 @@ function handle_missing_ranks(
 		if($include_common_names)
 			$count++;
 
-		if($include_sources)
+		if($include_sources || $fill_in_sources)
 			$count++;
 
 		$line .= str_repeat($column_separator, $count);
@@ -307,13 +312,12 @@ function save_result(){
 	$result = '';
 	$lines_count = 0;
 
-	if($file_id>200)
+	if($file_id>500)
 		exit('File limit reached');
 
 }
 
-foreach($tree as $taxon_number => $node_data)
-	show_node($taxon_number, $node_data, $choice_tree);
+show_node($kingdom, $tree[$kingdom], $choice_tree);
 
 
 //output the result
@@ -323,7 +327,7 @@ else {
 
 	save_result();
 
-	$result_file_name = 'ITIS '.date('d.m.Y-H_m_i');
+	$result_file_name = 'GBIF '.date('d.m.Y-H_m_i');
 
 	if($file_id==0)
 		exit('There is no data to return');

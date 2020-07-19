@@ -20,11 +20,10 @@ if(CONFIGURATION==='localhost'){
 	# Address the website would be served on
 	define('LINK', 'http://localhost:80/');
 
-	# Set this to an empty folder. This would be the destination for all uncompressed
-	# access.log and other files created in the process.
-	# Make sure the web server has write permissions to this folder.
-	# **Warning!** All of the files present in this directory would be deleted.
-	define('WORKING_LOCATION','/Users/mambo/Downloads/python-taxonomy/');
+	# Set this to an empty folder
+	# Make sure the web server has write permissions to this folder
+	# **Warning!** All of the files present in this directory would be deleted
+	define('WORKING_LOCATION','/Users/mambo/Downloads/gbif/');
 
 }
 
@@ -32,13 +31,13 @@ elseif(CONFIGURATION==='ec2'){
 
 	define('LINK', 'https://specify.maxxxxxdlp.ml/taxa_itis/front_end/');
 
-	define('WORKING_LOCATION','/home/ec2-user/data/python-taxonomy/');
+	define('WORKING_LOCATION','/home/ec2-user/data/gbif/');
 
 }
 else { # these settings would be used during production
 
 	define('LINK', 'http://biwebdbtest.nhm.ku.edu/taxa/');
 
-	define('WORKING_LOCATION','/home/sp7-stats/python-taxonomy/');
+	define('WORKING_LOCATION','/home/sp7-stats/gbif/');
 
 }

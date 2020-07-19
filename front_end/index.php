@@ -2,7 +2,7 @@
 
 require_once('components/header.php');
 head();
-ini_set('memory_limit', '1024M');
+ini_set('memory_limit', '3072M');
 
 $kingdoms_location = WORKING_LOCATION . 'kingdoms.json';
 $ranks_location = WORKING_LOCATION . 'ranks.json';
@@ -65,29 +65,50 @@ if(!file_exists($rows_location) ||
 	exit('Run data refresh first to generate the '.$rows_location . $kingdom.'.json files');
 
 
-//Show the tree and other options ?>
+//Show the tree and other options
+
+if($kingdom==8)
+	$display_down_to = 'Order';
+else
+	$display_down_to = 'Class'; ?>
 
 <h3>Step 2: Select the nodes you want to have in your database</h3>
 
 <ul class="pl-0" id="root"> <?php
 
-	$display_down_to = 60;
+	$stop_ranks = [];
+
+	foreach($ranks as $kingdom_id => $kingdom_ranks){//find the ID of a stop rank for each kingdom
+
+		$stop_ranks[$kingdom_id] = FALSE;
+
+		foreach($kingdom_ranks as $rank_id => $rank_data)
+			if($rank_data[0]==$display_down_to){
+				$stop_ranks[$kingdom_id] = $rank_id;
+				break;
+			}
+
+	}
+
+
 	$arrow_location = LINK.'static/svg/arrow.svg';
 
 
-	function show_node($node,$level=0){
+	function show_node($node){
 
-		global $display_down_to;
+		global $stop_ranks;
 		global $ranks;
 		global $kingdom;
 		global $arrow_location;
+		global $tree;
+
 
 		$node_name = $node[0][0];
 		$capitalized_node_name = ucfirst($node_name);
 		$rank_name = $ranks[$kingdom][$node[1]][0];
 		$rank_id = $node[1];
 
-		$show_children = $rank_id<$display_down_to;
+		$show_children = $rank_id<$stop_ranks[$kingdom] && count($node[2])>0;
 
 		if($show_children)
 			$collapse = '<button style="background-image: url('.$arrow_location.')" class="arrow"></button>';
@@ -103,8 +124,8 @@ if(!file_exists($rows_location) ||
 		if($show_children){ ?>
 			<ul class="collapsed"> <?php
 
-				foreach($node[2] as $node_data)
-					show_node($node_data,$level+1); ?>
+				foreach($node[2] as $children_ids)
+					show_node($tree[$children_ids]); ?>
 
 			</ul> <?php
 		}
@@ -113,8 +134,7 @@ if(!file_exists($rows_location) ||
 
 	}
 
-	foreach($tree as $node_data)
-		show_node($node_data); ?>
+	show_node($tree[$kingdom]); ?>
 
 </ul>
 
@@ -132,16 +152,18 @@ $specify_ranks = $new_specify_ranks;
 
 foreach($ranks[$kingdom] as $rank_id => $rank){
 
-	if(!array_key_exists($rank[0],$specify_ranks))
+	$rank = $rank[0];
+
+	if(!array_key_exists($rank,$specify_ranks))
 		continue;
 
 	$checked = '';
-	if($specify_ranks[$rank[0]])
+	if($specify_ranks[$rank])
 		$checked = ' checked'; ?>
 
 	<div class="custom-control custom-checkbox">
 		<input type="checkbox" class="custom-control-input rank" id="rank_<?=$rank_id?>" <?=$checked?>>
-		<label class="custom-control-label" for="rank_<?=$rank_id?>"><?=ucfirst($rank[0])?></label>
+		<label class="custom-control-label" for="rank_<?=$rank_id?>"><?=$rank?></label>
 	</div> <?php
 
 } ?>
@@ -165,7 +187,7 @@ foreach($ranks[$kingdom] as $rank_id => $rank){
 
 <div class="custom-control custom-checkbox">
 	<input type="checkbox" class="custom-control-input option" id="option_4">
-	<label class="custom-control-label" for="option_4">Replace empty sources with links to <a href="https://itis.gov">itis.gov</a></label>
+	<label class="custom-control-label" for="option_4">Replace empty sources with links to <a href="https://www.gbif.org/">gbif.org</a></label>
 </div>
 
 <div class="custom-control custom-checkbox mb-4">
