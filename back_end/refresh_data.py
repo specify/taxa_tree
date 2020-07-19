@@ -19,83 +19,83 @@ mysql_password = 'root'
 #
 begin_time = time.time()
 print('Preparation')
-# Path(target_dir).mkdir(parents=True, exist_ok=True)
+Path(target_dir).mkdir(parents=True, exist_ok=True)
+
+
 #
+print('Downloading meta data')
+
+date_destination = target_dir + 'date.txt'
+meta_destination = target_dir + 'meta.xml'
+temp_meta_destination = target_dir + 'meta_temp.xml'
+
+request = requests.get(meta_url)
+
+
+def get_date(target_destination):
+    tree = xmlParser.parse(target_destination)
+    root_element = tree.getroot()
+    description = root_element.find('dataset')
+    return description.find('pubDate').text.strip()
+
+
+if path.exists(meta_destination):
+
+    with open(temp_meta_destination, 'wb') as file:
+        file.write(request.content)
+
+    old_data_date = get_date(meta_destination)
+    new_data_date = get_date(temp_meta_destination)
+
+    if old_data_date == new_data_date:
+        raise SystemExit('No need to refresh data')
+
+with open(meta_destination, 'wb') as file:
+    file.write(request.content)
+
+with open(date_destination, 'w') as file:
+    file.write(get_date(meta_destination))
+
+print('Downloading the archive')
+
+archive_name = target_dir + 'archive.zip'
+
+request = requests.get(source_url)
+
+with open(archive_name, 'wb') as file:
+    file.write(request.content)
+
+
 #
-# #
-# print('Downloading meta data')
+print('Unzipping the file')
+with ZipFile(archive_name, 'r') as zip_file:
+    files = zip_file.namelist()
+    zip_file.extractall(target_dir+'extracted/')
+
+
 #
-# date_destination = target_dir + 'date.txt'
-# meta_destination = target_dir + 'meta.xml'
-# temp_meta_destination = target_dir + 'meta_temp.xml'
+print('Creating database schema')
+with open('sql/taxa.sql', 'r') as file:
+    result_query = file.read()
+
+result_query = result_query.replace("\n", ' ')
+result_query = result_query.replace("`", '\\' + '`')
+
+system('mysql -h%s -u%s -p%s -e "%s"' % (
+    mysql_host,
+    mysql_user,
+    mysql_password,
+    result_query
+))
+
+
 #
-# request = requests.get(meta_url)
-#
-#
-# def get_date(target_destination):
-#     tree = xmlParser.parse(target_destination)
-#     root_element = tree.getroot()
-#     description = root_element.find('dataset')
-#     return description.find('pubDate').text.strip()
-#
-#
-# if path.exists(meta_destination):
-#
-#     with open(temp_meta_destination, 'wb') as file:
-#         file.write(request.content)
-#
-#     old_data_date = get_date(meta_destination)
-#     new_data_date = get_date(temp_meta_destination)
-#
-#     if old_data_date == new_data_date:
-#         raise SystemExit('No need to refresh data')
-#
-# with open(meta_destination, 'wb') as file:
-#     file.write(request.content)
-#
-# with open(date_destination, 'w') as file:
-#     file.write(get_date(meta_destination))
-#
-# print('Downloading the archive')
-#
-# archive_name = target_dir + 'archive.zip'
-#
-# request = requests.get(source_url)
-#
-# with open(archive_name, 'wb') as file:
-#     file.write(request.content)
-#
-#
-# #
-# print('Unzipping the file')
-# with ZipFile(archive_name, 'r') as zip_file:
-#     files = zip_file.namelist()
-#     zip_file.extractall(target_dir+'extracted/')
-#
-#
-# #
-# print('Creating database schema')
-# with open('sql/taxa.sql', 'r') as file:
-#     result_query = file.read()
-#
-# result_query = result_query.replace("\n", ' ')
-# result_query = result_query.replace("`", '\\' + '`')
-#
-# system('mysql -h%s -u%s -p%s -e "%s"' % (
-#     mysql_host,
-#     mysql_user,
-#     mysql_password,
-#     result_query
-# ))
-#
-#
-# #
-# print('Putting new data into the database')
-# system('mysql -h%s -u%s -p%s --database gbif -e "LOAD DATA LOCAL INFILE \'%s\' INTO TABLE taxa IGNORE 1 LINES;"' % (
-#     mysql_host,
-#     mysql_user,
-#     mysql_password,
-#     target_dir+'extracted/Taxon.tsv'))
+print('Putting new data into the database')
+system('mysql -h%s -u%s -p%s --database gbif -e "LOAD DATA LOCAL INFILE \'%s\' INTO TABLE taxa IGNORE 1 LINES;"' % (
+    mysql_host,
+    mysql_user,
+    mysql_password,
+    target_dir+'extracted/Taxon.tsv'))
 
 
 #
@@ -163,9 +163,6 @@ while True:
 
     while len(row) < len(columns):
         row.append('')
-
-    # if len(row) != len(columns):
-    #     continue
 
     tsn = int(row[columns['tsn']])
     parent_tsn = int(row[columns['parent_tsn']])
