@@ -2,9 +2,17 @@ USE `gbif`;
 
 SELECT `taxonID`                  AS 'tsn',
        IF(
-           `canonicalName`='',
-           `scientificName`,
-           `canonicalName`
+           `infraspecificEpithet`!='',
+           `infraspecificEpithet`,
+           IF(
+               `specificEpithet`!='',
+               `specificEpithet`,
+               IF(
+                   `canonicalName`!='',
+                   `canonicalName`,
+                   `genericName`
+               )
+           )
        )                          AS 'name',
        `genericName`              AS 'common_name',
        `parentNameUsageID`        AS 'parent_tsn',
