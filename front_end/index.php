@@ -75,7 +75,7 @@ if(!file_exists($rows_location) ||
 	$arrow_location = LINK.'static/svg/arrow.svg';
 
 
-	function show_node($node,$level=0){
+	function show_node($node){
 
 		global $display_down_to;
 		global $ranks;
@@ -104,7 +104,7 @@ if(!file_exists($rows_location) ||
 			<ul class="collapsed"> <?php
 
 				foreach($node[2] as $node_data)
-					show_node($node_data,$level+1); ?>
+					show_node($node_data); ?>
 
 			</ul> <?php
 		}

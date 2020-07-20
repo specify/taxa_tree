@@ -20,10 +20,9 @@ if(CONFIGURATION==='localhost'){
 	# Address the website would be served on
 	define('LINK', 'http://localhost:80/');
 
-	# Set this to an empty folder. This would be the destination for all uncompressed
-	# access.log and other files created in the process.
-	# Make sure the web server has write permissions to this folder.
-	# **Warning!** All of the files present in this directory would be deleted.
+	# Set this to an empty folder
+	# Make sure the web server has write permissions to this folder
+	# **Warning!** All of the files present in this directory would be deleted
 	define('WORKING_LOCATION','/Users/mambo/Downloads/python-taxonomy/');
 
 }

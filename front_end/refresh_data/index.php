@@ -65,7 +65,7 @@ unset($_COOKIE,$_POST,$_GET,$_SERVER,$_FILES);
 ini_set('memory_limit','1024M');
 
 # Read rows
-//tsn name parent rank kingdom author source
+//tsn name common_name parent_tsn rank kingdom author source
 $rows_file = fopen($rows_data, "r");
 fgets($rows_file);
 $rows = [];
@@ -79,6 +79,11 @@ while(!feof($rows_file)){
 
 	if(count($row) !== 8)
 		continue;
+
+	if(array_key_exists([$row[0]],$rows[$row[5]])){
+		$rows[$row[5]][$row[0]][0][1] .= ', '.$row[2];
+		continue;
+	}
 
 	if(!array_key_exists($row[5], $rows)){//create kingdom if does not exist
 		$rows[$row[5]] = [];

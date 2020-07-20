@@ -69,7 +69,7 @@ if(!array_key_exists('payload', $_POST) || $_POST['payload'] == '')
 		$include_common_names,
 		$include_authors,
 		$include_sources,
-		$fill_in_itis_links,
+		$fill_in_links,
 		$use_file_splitter
 	]
 ] = json_decode($_POST['payload'], TRUE);
@@ -180,7 +180,7 @@ function show_node(
 	global $kingdom;
 	global $ranks;
 	global $selected_ranks;
-	global $fill_in_itis_links;
+	global $fill_in_links;
 	global $result;
 	global $line_limit;
 	global $lines_count;
@@ -216,7 +216,7 @@ function show_node(
 		$line .= $column_separator;
 		if($include_sources && $node[0][3]!='')
 			$line .= $node[0][3];
-		elseif($fill_in_itis_links && $node[0][3]=='')
+		elseif($fill_in_links && $node[0][3]=='')
 			$line .=LINK.'redirect/?tsn='.$taxon_number;
 
 		$result .= $line . $line_separator;
@@ -246,6 +246,7 @@ function handle_missing_ranks(
 	global $include_authors;
 	global $include_common_names;
 	global $include_sources;
+	global $fill_in_links;
 	global $required_ranks;
 
 	$line = '';
@@ -262,7 +263,7 @@ function handle_missing_ranks(
 		if($include_common_names)
 			$count++;
 
-		if($include_sources)
+		if($include_sources || $fill_in_links)
 			$count++;
 
 		$line .= str_repeat($column_separator, $count);
