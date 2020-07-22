@@ -9,10 +9,12 @@ elseif($_SERVER['HTTP_HOST']=='specify.maxxxxxdlp.ml'){
 	define('DEVELOPMENT',TRUE);
 	define('CONFIGURATION','ec2');
 }
-else {
+elseif($_SERVER['SERVER_ADDR']=='129.237.201.1'){
 	define('DEVELOPMENT',FALSE);
 	define('CONFIGURATION','production');
 }
+else
+	exit('Modify settings in /config/required.php');
 
 
 if(CONFIGURATION==='localhost'){
@@ -34,10 +36,10 @@ elseif(CONFIGURATION==='ec2'){
 	define('WORKING_LOCATION','/home/ec2-user/data/gbif/');
 
 }
-else { # these settings would be used during production
+elseif(CONFIGURATION==='production') { # these settings would be used in production
 
-	define('LINK', 'http://biwebdbtest.nhm.ku.edu/taxa/');
+	define('LINK', 'https://taxon.specifysoftware.org/gbif/');
 
-	define('WORKING_LOCATION','/home/sp7-stats/gbif/');
+	define('WORKING_LOCATION','/usr/share/nginx/data/gbif/');
 
 }

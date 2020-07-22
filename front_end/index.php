@@ -68,7 +68,7 @@ if(!file_exists($rows_location) ||
 //Show the tree and other options
 
 if($kingdom==8)
-	$display_down_to = 'Order';
+	$display_down_to = 'Family';
 else
 	$display_down_to = 'Class'; ?>
 
@@ -76,27 +76,27 @@ else
 
 <ul class="pl-0" id="root"> <?php
 
-	$stop_ranks = [];
+	$stop_rank = FALSE;
+	$parent_rank_id = 0;
 
-	foreach($ranks as $kingdom_id => $kingdom_ranks){//find the ID of a stop rank for each kingdom
+	foreach($ranks[$kingdom] as $rank_id => &$rank_data){
 
-		$stop_ranks[$kingdom_id] = FALSE;
+		if($rank_data[0]==$display_down_to)
+			$stop_rank = $rank_id;
 
-		foreach($kingdom_ranks as $rank_id => $rank_data)
-			if($rank_data[0]==$display_down_to){
-				$stop_ranks[$kingdom_id] = $rank_id;
-				break;
-			}
+		if($parent_rank_id!=0)
+			$ranks[$kingdom][$parent_rank_id][2] = $rank_id;
+
+		$parent_rank_id = $rank_id;
 
 	}
-
 
 	$arrow_location = LINK.'static/svg/arrow.svg';
 
 
 	function show_node($node){
 
-		global $stop_ranks;
+		global $stop_rank;
 		global $ranks;
 		global $kingdom;
 		global $arrow_location;
@@ -108,7 +108,7 @@ else
 		$rank_name = $ranks[$kingdom][$node[1]][0];
 		$rank_id = $node[1];
 
-		$show_children = $rank_id<$stop_ranks[$kingdom] && count($node[2])>0;
+		$show_children = $rank_id<$stop_rank && count($node[2])>0;
 
 		if($show_children)
 			$collapse = '<button style="background-image: url('.$arrow_location.')" class="arrow"></button>';
@@ -124,8 +124,27 @@ else
 		if($show_children){ ?>
 			<ul class="collapsed"> <?php
 
-				foreach($node[2] as $children_ids)
-					show_node($tree[$children_ids]); ?>
+				$direct_children = [];
+				$indirect_children = [];
+
+				foreach($node[2] as $children_id){
+
+					$children_rank_id = $tree[$children_id][1];
+
+					if($ranks[$kingdom][$children_rank_id][1]==$rank_id)
+						$direct_children[] = $children_id;
+					else
+						$indirect_children[] = $children_id;
+
+				}
+
+				if(count($indirect_children)!=0){
+					$direct_children_rank = $ranks[$kingdom][$rank_id][2];
+					show_node([['(no ' . $ranks[$kingdom][$direct_children_rank][0] . ')'], $direct_children_rank, $indirect_children]);
+				}
+
+				foreach($direct_children as $children_id)
+					show_node($tree[$children_id]); ?>
 
 			</ul> <?php
 		}

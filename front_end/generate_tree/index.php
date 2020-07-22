@@ -214,11 +214,10 @@ function show_node(
 		if($include_common_names)
 			$line .= $column_separator . $node[0][1];
 
-		$line .= $column_separator;
 		if($include_sources && $node[0][3]!='')
-			$line .= $node[0][3];
+			$line .= $column_separator.$node[0][3];
 		elseif($fill_in_sources && $node[0][3]=='')
-			$line .='https://gbif.gov/species/'.$taxon_number;
+			$line .= $column_separator.'https://gbif.gov/species/'.$taxon_number;
 
 		$result .= $line . $line_separator;
 

@@ -50,7 +50,7 @@ $( function () {
 
 	function get_children(element){
 
-		const tree = {};
+		let tree = {};
 
 		const children = element.find('> li');
 
@@ -60,7 +60,10 @@ $( function () {
 
 			const child_name = child.attr('data-name');
 
-			if(child.hasClass('mixed')){
+			if(child_name.substr(0,4)==='(no ')
+				tree = get_children(ul);
+
+			else if(child.hasClass('mixed')){
 				const ul = child.find('> ul');
 				if(ul.length===1)
 					tree[child_name] = get_children(ul);
