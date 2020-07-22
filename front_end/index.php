@@ -2,7 +2,7 @@
 
 require_once('components/header.php');
 head();
-ini_set('memory_limit', '1024M');
+ini_set('memory_limit', '3072M');
 
 $kingdoms_location = WORKING_LOCATION . 'kingdoms.json';
 $ranks_location = WORKING_LOCATION . 'ranks.json';

@@ -1,6 +1,6 @@
 <?php
 
-ini_set('memory_limit', '1024M');
+ini_set('memory_limit', '3072M');
 ignore_user_abort(true);
 
 require_once('../components/header.php');
@@ -145,7 +145,7 @@ foreach($ranks[$kingdom] as $rank_id => $rank_data){
 	if($include_common_names)
 		$line .= $column_separator . $rank_name . ' Common Name';
 
-	if($include_sources || $fill_in_itis_links)
+	if($include_sources || $fill_in_links)
 		$line .= $column_separator . $rank_name . ' Source';
 
 }
@@ -213,11 +213,10 @@ function show_node(
 		if($include_common_names)
 			$line .= $column_separator . $node[0][1];
 
-		$line .= $column_separator;
 		if($include_sources && $node[0][3]!='')
-			$line .= $node[0][3];
+			$line .= $column_separator.$node[0][3];
 		elseif($fill_in_links && $node[0][3]=='')
-			$line .=LINK.'redirect/?tsn='.$taxon_number;
+			$line .= $column_separator.LINK.'redirect/?tsn='.$taxon_number;
 
 		$result .= $line . $line_separator;
 
