@@ -9,6 +9,10 @@ elseif($_SERVER['HTTP_HOST']=='specify.maxxxxxdlp.ml'){
 	define('DEVELOPMENT',TRUE);
 	define('CONFIGURATION','ec2');
 }
+elseif($_SERVER['HTTP_HOST']=='maxxxxxdlp.ddns.net'){
+	define('DEVELOPMENT',TRUE);
+	define('CONFIGURATION','home_ubuntu');
+}
 elseif($_SERVER['SERVER_ADDR']=='129.237.201.1'){
 	define('DEVELOPMENT',FALSE);
 	define('CONFIGURATION','production');
@@ -36,6 +40,15 @@ elseif(CONFIGURATION==='ec2'){
 	define('WORKING_LOCATION','/home/ec2-user/data/taxons/');
 
 }
+
+elseif(CONFIGURATION==='home_ubuntu'){
+
+	define('LINK', 'http://maxxxxxdlp.ddns.net/taxa_col/');
+
+	define('WORKING_LOCATION','/home/mambo/Downloads/site-data/col/');
+
+}
+
 elseif(CONFIGURATION==='production') { # these settings would be used in production
 
 	define('LINK', 'https://taxon.specifysoftware.org/col/');

@@ -1,6 +1,7 @@
 <?php
 
 ini_set('memory_limit', '2048M');
+set_time_limit(59);
 
 require_once('../components/header.php');
 
@@ -136,6 +137,7 @@ else {
 
 }
 
+ob_start();//some records don't have ids and PHP generates Notice for them
 foreach($result_tree as $kingdom => [$kingdom_data,$kingdom_id])
 	foreach($kingdom_data as $phylum => [$phylum_data,$phylum_id])
 		foreach($phylum_data as $class => [$class_data,$class_id])
@@ -184,6 +186,11 @@ foreach($result_tree as $kingdom => [$kingdom_data,$kingdom_id])
 
 						}
 
+$output = ob_get_contents();
+ob_end_clean();
+
+if($output!=='')
+	file_put_contents(WORKING_LOCATION.'error_'.rand(0,10).'.log',json_encode([$output,$_SERVER,$_GET,$_POST]));
 
 
 
