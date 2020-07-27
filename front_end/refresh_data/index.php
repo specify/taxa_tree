@@ -80,7 +80,10 @@ while(!feof($rows_file)){
 	if(count($row) !== 8)
 		continue;
 
-	if(array_key_exists([$row[0]],$rows[$row[5]])){
+	if($row[2] == 'NULL')
+		$row[2] = '';
+
+	if($row[2] !== '' && array_key_exists($row[5],$rows) && array_key_exists($row[0],$rows[$row[5]])){
 		$rows[$row[5]][$row[0]][0][1] .= ', '.$row[2];
 		continue;
 	}
