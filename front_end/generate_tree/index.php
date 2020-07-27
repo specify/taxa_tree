@@ -1,6 +1,7 @@
 <?php
 
 ini_set('memory_limit', '3072M');
+set_time_limit(59);
 ignore_user_abort(true);
 
 require_once('../components/header.php');
