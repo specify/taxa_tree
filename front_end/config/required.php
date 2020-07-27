@@ -25,7 +25,7 @@ if(CONFIGURATION==='localhost'){
 	# Set this to an empty folder
 	# Make sure the web server has write permissions to this folder
 	# **Warning!** All of the files present in this directory would be deleted
-	define('WORKING_LOCATION','/Users/mambo/Downloads/gbif/');
+	define('WORKING_LOCATION','/Users/mambo/Downloads/gbif_col/');
 
 }
 
@@ -33,13 +33,13 @@ elseif(CONFIGURATION==='ec2'){
 
 	define('LINK', 'https://specify.maxxxxxdlp.ml/taxa_itis/front_end/');
 
-	define('WORKING_LOCATION','/home/ec2-user/data/gbif/');
+	define('WORKING_LOCATION','/home/ec2-user/data/gbif_col/');
 
 }
 elseif(CONFIGURATION==='production') { # these settings would be used in production
 
-	define('LINK', 'https://taxon.specifysoftware.org/gbif/');
+	define('LINK', 'https://taxon.specifysoftware.org/gbif_col/');
 
-	define('WORKING_LOCATION','/usr/share/nginx/data/gbif/');
+	define('WORKING_LOCATION','/usr/share/nginx/data/gbif_col/');
 
 }

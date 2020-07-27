@@ -65,6 +65,7 @@ if(!file_exists($rows_location) ||
 	exit('Run data refresh first to generate the '.$rows_location . $kingdom.'.json files');
 
 
+
 //Show the tree and other options
 
 if($kingdom==8)
@@ -153,7 +154,7 @@ else
 
 	}
 
-	show_node($tree[$kingdom]); ?>
+	show_node($tree[$tree['root']]); ?>
 
 </ul>
 
@@ -201,17 +202,12 @@ foreach($ranks[$kingdom] as $rank_id => $rank){
 
 <div class="custom-control custom-checkbox">
 	<input type="checkbox" class="custom-control-input option" id="option_3">
-	<label class="custom-control-label" for="option_3">Include Sources</label>
-</div>
-
-<div class="custom-control custom-checkbox">
-	<input type="checkbox" class="custom-control-input option" id="option_4">
-	<label class="custom-control-label" for="option_4">Replace empty sources with links to <a href="https://www.gbif.org/">gbif.org</a></label>
+	<label class="custom-control-label" for="option_3">Include links to <a href="http://catalogueoflife.org/">catalogueoflife.org</a></label>
 </div>
 
 <div class="custom-control custom-checkbox mb-4">
-	<input type="checkbox" class="custom-control-input option" id="option_5" checked>
-	<label class="custom-control-label" for="option_5">Split the resulting tree into CSV files of less than 7000 records</label>
+	<input type="checkbox" class="custom-control-input option" id="option_4" checked>
+	<label class="custom-control-label" for="option_4">Split the resulting tree into CSV files of less than 7000 records</label>
 </div>
 
 <form action="<?=LINK?>generate_tree/?kingdom=<?=$kingdom?>" method="POST" class="mt-4">

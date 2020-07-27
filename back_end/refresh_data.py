@@ -9,9 +9,9 @@ from os import system, path
 #
 print('Config')
 site_link = 'http://localhost:80/'
-target_dir = '/Users/mambo/Downloads/gbif/'
-source_url = 'http://rs.gbif.org/datasets/backbone/backbone-current.zip'
-meta_url = 'https://api.gbif.org/v1/dataset/d7dddbf4-2cf0-4f39-9b2a-bb099caae36c/document'
+target_dir = '/Users/mambo/Downloads/gbif_col/'
+source_url = 'http://www.catalogueoflife.org/DCA_Export/zip/archive-complete.zip'
+meta_url = 'https://api.gbif.org/v1/dataset/7ddf754f-d193-4cc9-b351-99906754a03b/document'
 mysql_host = 'localhost'
 mysql_user = 'root'
 mysql_password = 'root'
@@ -73,7 +73,7 @@ with ZipFile(archive_name, 'r') as zip_file:
     zip_file.extractall(target_dir+'extracted/')
 
 
-#
+
 print('Creating database schema')
 with open('sql/taxa.sql', 'r') as file:
     result_query = file.read()
@@ -91,15 +91,15 @@ system('mysql -h%s -u%s -p%s -e "%s"' % (
 
 #
 print('Putting new data into the database')
-system('mysql -h%s -u%s -p%s --database gbif -e "LOAD DATA LOCAL INFILE \'%s\' INTO TABLE taxa IGNORE 1 LINES;"' % (
+system('mysql -h%s -u%s -p%s --database gbif_col -e "LOAD DATA LOCAL INFILE \'%s\' INTO TABLE taxa IGNORE 1 LINES;"' % (
     mysql_host,
     mysql_user,
     mysql_password,
-    target_dir+'extracted/Taxon.tsv'))
+    target_dir+'extracted/taxa.txt'))
 
 
 #
-print('Extracting data')
+print('Extracting data (this may take some time)')
 with open('sql/rows.sql', 'r') as file:
     result_query = file.read()
 
@@ -134,15 +134,6 @@ def list_flip(original_list):
     return dictionary
 
 
-def dict_flip(original_dict):
-    dictionary = {}
-
-    for key, value in original_dict.items():
-        dictionary[value] = key
-
-    return dictionary
-
-
 rows_file = open(rows_data, 'r')
 line = rows_file.readline()
 rows = {}
@@ -150,7 +141,12 @@ ranks = {}
 kingdoms = {}
 root = {}
 columns = list_flip(['tsn', 'name', 'common_name', 'parent_tsn', 'rank', 'kingdom', 'author', 'source'])
-i = 0
+line_number = 0
+specify_ranks = ['Domain', 'Infrakingdom', 'Superphylum', 'Infradivision', 'Cohort', 'Kingdom', 'Subkingdom', 'Division',
+               'Subdivision', 'Phylum', 'Subphylum', 'Superclass', 'Class', 'Subclass', 'Infraclass', 'Superorder',
+               'Order', 'Suborder', 'Infraorder', 'Superfamily', 'Family', 'Subfamily', 'Tribe', 'Subtribe', 'Genus',
+               'Subgenus', 'Section', 'Subsection', 'Species', 'Subspecies', 'Variety', 'Subvariety', 'Forma',
+               'Subforma']
 
 while True:
     line = rows_file.readline()
@@ -170,10 +166,15 @@ while True:
     rank = row[columns['rank']]
     name = row[columns['name']]
 
-    if parent_tsn == 0:  # create kingdom
-        kingdom_id = int(tsn)
+    # create kingdom
+    if kingdom not in kingdoms:
 
-        kingdoms[name] = kingdom_id
+        if not kingdoms:
+            kingdom_id = 1
+        else:
+            kingdom_id = kingdoms[max(kingdoms, key=kingdoms.get)] + 1
+
+        kingdoms[kingdom] = kingdom_id
 
         ranks[kingdom_id] = {}
         rows[kingdom_id] = {}
@@ -181,8 +182,14 @@ while True:
     else:
         kingdom_id = kingdoms[kingdom]
 
-    if rank not in ranks[kingdom_id]:  # create rank
-        rank_id = int(tsn)
+    # create rank
+    if rank not in ranks[kingdom_id]:
+
+        if not ranks[kingdom_id]:
+            rank_id = 1
+        else:
+            rank_id = ranks[kingdom_id][max(ranks[kingdom_id], key=ranks[kingdom_id].get)] + 1
+
         ranks[kingdom_id][rank] = rank_id
 
     else:
@@ -203,8 +210,8 @@ while True:
         parent_tsn,
     ]
 
-    print(str(i)+"\t"+data[0][0])
-    i = i+1
+    print(str(line_number) + "\t" + data[0][0])
+    line_number = line_number + 1
 
     rows[kingdom_id][tsn] = data
 
@@ -218,7 +225,6 @@ while True:
 
 rows_file.close()
 
-
 print('Saving kingdoms')
 new_kingdoms = {}
 for kingdom_name, kingdom_id in kingdoms.items():
@@ -228,24 +234,33 @@ kingdoms = new_kingdoms
 with open(kingdoms_data, 'w') as file:
     file.write(json.dumps(kingdoms))
 
-
 print('Saving ranks')
-new_ranks = {}
+new_ranks = {}  # fix ranks being in wrong order
 for kingdom_id, kingdom_ranks in ranks.items():
 
-    parent_rank_id = 0
     new_ranks[kingdom_id] = {}
+    parent_rank_id = 0
 
-    for rank_name, rank_id in kingdom_ranks.items():
-        new_ranks[kingdom_id][rank_id] = [rank_name.capitalize(), parent_rank_id]
+    for rank_name in specify_ranks:
+
+        lower_case_rank_name = rank_name.lower()
+
+        if lower_case_rank_name not in kingdom_ranks:
+            continue
+
+        rank_id = kingdom_ranks[lower_case_rank_name]
+        new_ranks[kingdom_id][rank_id] = [rank_name, parent_rank_id]
 
         parent_rank_id = rank_id
+
 ranks = new_ranks
 
 with open(ranks_data, 'w') as file:
     file.write(json.dumps(ranks))
 
-ii = 0
+raise SystemExit
+
+order_line_number = 0
 
 for kingdom_id, kingdom_data in rows.items():
 
@@ -269,16 +284,17 @@ for kingdom_id, kingdom_data in rows.items():
             modified = False
 
             print('Fixed order')
-            ii = ii+1
+            order_line_number = order_line_number + 1
 
-print('Rows: %d\nOrder fixes: %d' % (i, ii))
+print('Rows: %d\nOrder fixes: %d' % (line_number, order_line_number))
 
 #
-print('Saving kingdoms')
+print('Saving data')
 Path(rows_destination).mkdir(parents=True, exist_ok=True)
 
 for kingdom_id, rows_data in rows.items():
     with open(rows_destination + str(kingdom_id) + '.json', 'w') as file:
+        rows_data['root'] = root[kingdom_id]
         file.write(json.dumps(rows_data))
 
 print('Begin time: %f' % begin_time)
