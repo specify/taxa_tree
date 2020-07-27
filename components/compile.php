@@ -43,7 +43,7 @@ function compile_kingdom($kingdom,&$data=''){
 
 		$row_data = explode("\t",$row);
 
-		if($row=='' || $row_data[$columns['taxonomicStatus']]!=='accepted name')
+		if($row=='' || $row_data[$columns['taxonomicStatus']]!=='accepted name' || $row_data[$columns['taxonomicStatus']]!=='provisionally accepted name')
 			continue;
 
 		$phylum = $row_data[$columns['phylum']];
