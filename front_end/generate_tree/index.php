@@ -68,7 +68,7 @@ if(!array_key_exists('payload', $_POST) || $_POST['payload'] == '')
 	[
 		$include_common_names,
 		$include_authors,
-		$fill_in_sources,
+		$fill_in_links,
 		$use_file_splitter,
 	],
 ] = json_decode($_POST['payload'], TRUE);
@@ -144,12 +144,44 @@ foreach($ranks[$kingdom] as $rank_id => $rank_data){
 	if($include_common_names)
 		$line .= $column_separator . $rank_name . ' Common Name';
 
-	if($fill_in_sources)
+	if($fill_in_links)
 		$line .= $column_separator . $rank_name . ' Source';
 
 }
 
 $header_line = $line . $line_separator;
+
+
+//send stats data
+if(STATS_URL!=''){
+
+	$friendly_selected_ranks = [];
+	foreach($selected_ranks as $rank_id)
+		$friendly_selected_ranks[] = $ranks[$kingdom][$rank_id][0];
+
+	$stats_data = [
+		'site'    => 'gbif_col',
+		'ip'      => $_SERVER['REMOTE_ADDR'],
+		'tree'    => $choice_tree,
+		'ranks'   => $friendly_selected_ranks,
+		'options' => [
+			'include_common_names' => $include_common_names,
+			'include_authors'      => $include_authors,
+			'fill_in_links'        => $fill_in_links,
+			'use_file_splitter'    => $use_file_splitter
+		],
+	];
+
+	$options = [
+		'http' => [
+			'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
+			'method'  => 'POST',
+			'content' => http_build_query($stats_data)
+		]
+	];
+	$context = stream_context_create($options);
+	$result = file_get_contents(STATS_URL, FALSE, $context);
+}
 
 
 //Output the data
@@ -178,7 +210,7 @@ function show_node(
 	global $kingdom;
 	global $ranks;
 	global $selected_ranks;
-	global $fill_in_sources;
+	global $fill_in_links;
 	global $result;
 	global $line_limit;
 	global $lines_count;
@@ -212,7 +244,7 @@ function show_node(
 		if($include_common_names)
 			$line .= $column_separator . $node[0][1];
 
-		if($fill_in_sources)
+		if($fill_in_links)
 			$line .= $column_separator . $node[0][3];
 
 		$result .= $line . $line_separator;
@@ -242,7 +274,7 @@ function handle_missing_ranks(
 	global $include_authors;
 	global $include_common_names;
 	global $required_ranks;
-	global $fill_in_sources;
+	global $fill_in_links;
 
 	if($rank == 0)
 		return '';
@@ -261,7 +293,7 @@ function handle_missing_ranks(
 		if($include_common_names)
 			$count++;
 
-		if($fill_in_sources)
+		if($fill_in_links)
 			$count++;
 
 		$line .= str_repeat($column_separator, $count);
@@ -366,9 +398,11 @@ else {
 	}
 
 
-	foreach(glob($target_dir . '*.*') as $file_name)
-		unlink($file_name);
+	if($target_dir!==''){
+		foreach (glob($target_dir.'*.*') as $file_name)
+			unlink($file_name);
 
-	rmdir($target_dir);
+		rmdir($target_dir);
+	}
 
 }
