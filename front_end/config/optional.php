@@ -1,7 +1,12 @@
 <?php
 
 
+### STATS REPORTING ###
+
+# A URL that would collect stats. See https://github.com/maxxxxxdlp/taxa_tree_stats
 define('STATS_URL',LINK.'../stats/collect/');
+
+
 
 ### FOR DEBUG ONLY ###
 
