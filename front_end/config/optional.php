@@ -1,5 +1,7 @@
 <?php
 
+define('STATS_URL',LINK.'../stats/collect/');
+
 
 ### FOR DEBUG ONLY ###
 

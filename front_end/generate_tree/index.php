@@ -153,6 +153,39 @@ foreach($ranks[$kingdom] as $rank_id => $rank_data){
 $header_line = $line . $line_separator;
 
 
+//send stats data
+if(STATS_URL!=''){
+
+	$friendly_selected_ranks = [];
+	foreach($selected_ranks as $rank_id)
+		$friendly_selected_ranks[] = $ranks[$kingdom][$rank_id][0];
+
+	$stats_data = [
+		'site'    => 'itis',
+		'ip'      => $_SERVER['REMOTE_ADDR'],
+		'tree'    => $choice_tree,
+		'ranks'   => $friendly_selected_ranks,
+		'options' => [
+			'include_common_names' => $include_common_names,
+			'include_sources'      => $include_sources,
+			'include_authors'      => $include_authors,
+			'fill_in_links'        => $fill_in_links,
+			'use_file_splitter'    => $use_file_splitter
+		],
+	];
+
+	$options = [
+		'http' => [
+			'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
+			'method'  => 'POST',
+			'content' => http_build_query($stats_data)
+		]
+	];
+	$context = stream_context_create($options);
+	$result = file_get_contents(STATS_URL, FALSE, $context);
+}
+
+
 //Output the data
 $result = '';
 $lines_count = 0;
@@ -368,9 +401,11 @@ else {
 	}
 
 
-	foreach (glob($target_dir.'*.*') as $file_name)
-		unlink($file_name);
+	if($target_dir!==''){
+		foreach (glob($target_dir.'*.*') as $file_name)
+			unlink($file_name);
 
-	rmdir($target_dir);
+		rmdir($target_dir);
+	}
 
 }
