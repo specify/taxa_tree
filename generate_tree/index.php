@@ -1,5 +1,6 @@
 <?php
 
+
 ini_set('memory_limit', '2048M');
 set_time_limit(59);
 
@@ -87,7 +88,22 @@ else
 	$line_limit = FALSE;
 
 
+$stats_data = [
+	'site' => 'col',
+	'ip' => $_SERVER['REMOTE_ADDR'],
+	'tree' => $choice_tree,
+	'options' => [
+		'include_common_names'=>$include_common_names,
+		'include_authors' => $include_authors,
+		'fill_in_links' => $fill_in_links,
+		'use_file_splitter' => $use_file_splitter
+	],
+];
+
 if($choice_tree==='file'){
+
+	$stats_data['site'] = 'col_upload';
+	$stats_data['tree'] = $_FILES['file']['name'];
 
 	$result_tree = [];
 
@@ -136,6 +152,21 @@ else {
 	unset($file_content);
 
 }
+
+
+
+if(STATS_URL!=''){
+	$options = [
+		'http' => [
+			'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
+			'method'  => 'POST',
+			'content' => http_build_query($stats_data)
+		]
+	];
+	$context = stream_context_create($options);
+	file_get_contents(STATS_URL, FALSE, $context);
+}
+
 
 ob_start();//some records don't have ids and PHP generates Notice for them
 foreach($result_tree as $kingdom => [$kingdom_data,$kingdom_id])
@@ -281,10 +312,11 @@ else {
 
 	}
 
+	if($target_dir!==''){
+		foreach (glob($target_dir.'*.*') as $file_name)
+			unlink($file_name);
 
-	foreach (glob($target_dir.'*.*') as $file_name)
-		unlink($file_name);
-
-	rmdir($target_dir);
+		rmdir($target_dir);
+	}
 
 }

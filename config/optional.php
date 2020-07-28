@@ -22,6 +22,9 @@ $tree_location = WORKING_LOCATION.'tree.json';
 $columns = array_flip(['taxonID','identifier','datasetID','datasetName','acceptedNameUsageID','parentNameUsageID','taxonomicStatus','taxonRank','verbatimTaxonRank','scientificName','kingdom','phylum','class','order','superfamily','family','genericName','genus','subgenus','specificEpithet','infraspecificEpithet','scientificNameAuthorship','source','namePublishedIn','nameAccordingTo','modified','description','taxonConceptID','scientificNameID','references','isExtinct']);
 
 
+define('STATS_URL',LINK.'../stats/collect/');
+
+
 ### FOR DEBUG ONLY ###
 
 # This will show success actions for most actions performed while the data refresh is running
