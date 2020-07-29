@@ -138,6 +138,7 @@ foreach($ranks[$kingdom] as $rank_id => $rank_data){
 
 	$rank_name = $rank_data[0];
 	$line .= $rank_name;
+	$line .= $column_separator.$rank_name.' GUID';
 
 	if($include_authors)
 		$line .= $column_separator . $rank_name . ' Author';
@@ -238,7 +239,7 @@ function show_node(
 		if($ranks[$kingdom][$rank][1] != $parent_rank)//if current $rank is not a direct parent of $parent_rank
 			$line .= handle_missing_ranks($rank, $parent_rank);
 
-		$line .= $node_name;
+		$line .= $node_name.$column_separator.$taxon_number;
 
 		if($include_authors)
 			$line .= $column_separator . $node[0][2];
@@ -287,7 +288,7 @@ function handle_missing_ranks(
 		if(in_array($rank,$required_ranks))//show required && missing ranks
 			$line .= '(no '.$ranks[$kingdom][$rank][0].')';
 
-		$count = 1;
+		$count = 2;
 
 		if($include_authors)
 			$count++;

@@ -24,7 +24,7 @@ Optional parameters are located in `./front_end/config/optional.php`
 You can go over the other settings in the `./front_end/config/optional.php` file and see if there is anything you would like to adjust.
 
 For example:
-1. You can configure stats reporting by making `STATS_URL` point to a location of `collect/` script from [Taxa Tree Stats reporter](https://github.com/maxxxxxdlp/taxa_tree_stats) 
+1. You can configure stats reporting by making `STATS_URL` point to a location of `collect/` script from [Taxa Tree Stats reporter](https://github.com/specify/taxa_tree_stats) 
 
 ## Credit for used resources
 There were snippets of code/files from the following resources used:
