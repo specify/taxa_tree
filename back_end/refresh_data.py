@@ -216,15 +216,16 @@ while True:
     rows[kingdom_id][tsn] = data
 
     if parent_tsn == 0:
-        del data[columns['parent_tsn']]
+        del rows[kingdom_id][tsn][3]
         root[kingdom_id] = tsn
 
     elif parent_tsn in rows[kingdom_id]:
-        del data[columns['parent_tsn']]
+        del rows[kingdom_id][tsn][3]
         rows[kingdom_id][parent_tsn][2].append(tsn)
 
 rows_file.close()
 
+#
 print('Saving kingdoms')
 new_kingdoms = {}
 for kingdom_name, kingdom_id in kingdoms.items():
@@ -234,6 +235,7 @@ kingdoms = new_kingdoms
 with open(kingdoms_data, 'w') as file:
     file.write(json.dumps(kingdoms))
 
+#
 print('Saving ranks')
 new_ranks = {}  # fix ranks being in wrong order
 for kingdom_id, kingdom_ranks in ranks.items():
@@ -258,9 +260,9 @@ ranks = new_ranks
 with open(ranks_data, 'w') as file:
     file.write(json.dumps(ranks))
 
-raise SystemExit
-
-order_line_number = 0
+#
+print('Fixing orders')
+orders_fixed = 0
 
 for kingdom_id, kingdom_data in rows.items():
 
@@ -273,6 +275,7 @@ for kingdom_id, kingdom_data in rows.items():
 
             try:
                 parent_tsn = row[3]
+                del row[3]
             except IndexError:
                 continue
 
@@ -284,9 +287,11 @@ for kingdom_id, kingdom_data in rows.items():
             modified = False
 
             print('Fixed order')
-            order_line_number = order_line_number + 1
+            orders_fixed = orders_fixed + 1
 
-print('Rows: %d\nOrder fixes: %d' % (line_number, order_line_number))
+    rows[kingdom_id]['root'] = root[kingdom_id]
+
+print('Rows: %d\nOrder fixes: %d' % (line_number, orders_fixed))
 
 #
 print('Saving data')
@@ -294,7 +299,6 @@ Path(rows_destination).mkdir(parents=True, exist_ok=True)
 
 for kingdom_id, rows_data in rows.items():
     with open(rows_destination + str(kingdom_id) + '.json', 'w') as file:
-        rows_data['root'] = root[kingdom_id]
         file.write(json.dumps(rows_data))
 
 print('Begin time: %f' % begin_time)

@@ -2,7 +2,7 @@
 
 ### STATS REPORTING ###
 
-# A URL that would collect stats. See https://github.com/maxxxxxdlp/taxa_tree_stats
+# A URL that would collect stats. See https://github.com/specify/taxa_tree_stats
 define('STATS_URL',LINK.'../stats/collect/');
 
 
