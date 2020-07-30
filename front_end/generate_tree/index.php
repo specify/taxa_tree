@@ -70,7 +70,9 @@ if(!array_key_exists('payload', $_POST) || $_POST['payload'] == '')
 		$include_authors,
 		$fill_in_links,
 		$use_file_splitter,
+		$exclude_extinct_taxa,
 	],
+	$user_ip,
 ] = json_decode($_POST['payload'], TRUE);
 
 if(!$choice_tree)
@@ -162,9 +164,9 @@ if(STATS_URL!=''){
 
 	$stats_data = [
 		'site'    => 'gbif_col',
-		'ip'      => $_SERVER['REMOTE_ADDR'],
 		'tree'    => $choice_tree,
 		'ranks'   => $friendly_selected_ranks,
+		'ip'      => $user_ip,
 		'options' => [
 			'include_common_names' => $include_common_names,
 			'include_authors'      => $include_authors,
@@ -181,7 +183,7 @@ if(STATS_URL!=''){
 		]
 	];
 	$context = stream_context_create($options);
-	$result = file_get_contents(STATS_URL, FALSE, $context);
+	file_get_contents(STATS_URL, FALSE, $context);
 }
 
 
@@ -216,11 +218,21 @@ function show_node(
 	global $line_limit;
 	global $lines_count;
 	global $tree;
+	global $exclude_extinct_taxa;
 
 	$node_name = $node[0][0];
 	$rank = $node[1];
 
-	if(is_array($parent_choice_tree) && !array_key_exists($node_name, $parent_choice_tree))
+	if(
+		(//element was not chosen
+			is_array($parent_choice_tree) &&
+			!array_key_exists($node_name, $parent_choice_tree)
+		) ||
+		(//element is extinct and should not be displayed
+			$node[0][4]==='true' &&
+			$exclude_extinct_taxa
+		)
+	)
 		return;
 
 	if($parent_choice_tree !== "true")
@@ -229,7 +241,7 @@ function show_node(
 		$choice_tree = "true";
 
 
-	if(in_array($rank, $selected_ranks)){
+	if(in_array($rank, $selected_ranks)){//the rank of this element is selected
 
 		if($line != '')
 			$line .= $column_separator;

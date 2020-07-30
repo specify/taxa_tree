@@ -7,6 +7,7 @@ $( function () {
 	const checkbox = $( '.checkbox' );
 	const root = $( '#root' );
 	const payload_field = $( '#payload_field' );
+	let user_ip = '';
 
 
 	// Sending results
@@ -41,7 +42,7 @@ $( function () {
 
 
 		//Send data
-		const payload = JSON.stringify([tree,ranks_values,options_values]);
+		const payload = JSON.stringify([tree,ranks_values,options_values,user_ip]);
 
 		payload_field.attr('value',payload);
 
@@ -198,5 +199,18 @@ $( function () {
 	ranks.change(function(){//set a listener for a checkbox change
 		shadow_rank($(this));
 	});
+
+
+	//Get user IP
+	const xmlHttp = new XMLHttpRequest();
+	xmlHttp.onreadystatechange = function() {
+		if (xmlHttp.readyState === 4 && xmlHttp.status === 200){
+			const response_json = xmlHttp.responseText;
+			const response = JSON.parse(response_json);
+			user_ip = response.ip;
+		}
+	}
+	xmlHttp.open("GET", "https://api.ipify.org?format=json", true);
+	xmlHttp.send(null);
 
 } );

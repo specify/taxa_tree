@@ -205,9 +205,14 @@ foreach($ranks[$kingdom] as $rank_id => $rank){
 	<label class="custom-control-label" for="option_3">Include links to <a href="http://catalogueoflife.org/">catalogueoflife.org</a></label>
 </div>
 
-<div class="custom-control custom-checkbox mb-4">
+<div class="custom-control custom-checkbox">
 	<input type="checkbox" class="custom-control-input option" id="option_4" checked>
 	<label class="custom-control-label" for="option_4">Split the resulting tree into CSV files of less than 7000 records</label>
+</div>
+
+<div class="custom-control custom-checkbox mb-4">
+	<input type="checkbox" class="custom-control-input option" id="option_5" checked>
+	<label class="custom-control-label" for="option_5">Exclude extinct taxa</label>
 </div>
 
 <form action="<?=LINK?>generate_tree/?kingdom=<?=$kingdom?>" method="POST" class="mt-4">

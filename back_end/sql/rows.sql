@@ -19,7 +19,8 @@ SELECT `taxonID`                  AS 'tsn',
        `taxonRank`                AS 'rank',
        `kingdom`                  AS 'kingdom',
        `scientificNameAuthorship` AS 'author',
-       `references`               AS 'source'
+       `references`               AS 'source',
+       `isExtinct`                AS 'is_extinct'
 FROM   `taxa`
 WHERE  `taxonomicStatus` IN ('','accepted name','provisionally accepted name')
    AND `acceptedNameUsageID`=0;
