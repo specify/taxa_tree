@@ -1,49 +1,36 @@
 <?php
 
 $full_tree = [];
+$taxonomicStatus_to_accept = ['','accepted name','provisionally accepted name'];
 
-function compile_kingdom($kingdom,&$data=''){
+function compile_kingdom($kingdom,$data_file){
 
-	global $results_path;
-	global $results_prefix;
+	global $columns;
+	global $taxonomicStatus_to_accept;
 	global $compiled_path;
 	global $compiled_prefix;
-	global $taxonomy_path;
-	global $columns;
 
-	$target_path = $data!=='';
-	if(!$target_path){
-
+	$data_update = $kingdom!==FALSE;
+	if($data_update)
 		global $full_tree;
 
-		$source_path = $results_path.$kingdom.$results_prefix.$taxonomy_path;
-		$target_path = $compiled_path.$kingdom.$compiled_prefix;
-
-		$data = file_get_contents($source_path);
-
-
-	}
-
-	$data = explode("\n",$data);
-	unset($data[0]);
-
-	if($target_path===TRUE){
-		$kingdom = $data[1];
-		$kingdom = explode("\t",$kingdom);
-		$kingdom = $kingdom[$columns['kingdom']];
-	}
-
-	//where taxonomicStatus = "accepted name"
-	//kingdom > phylum > class > order > family > genus > specificEpithet > [genericName, scientificName, scientificNameAuthorship]
+	//where taxonomicStatus in ["accepted name", "provisionally accepted name", ""]
+	//kingdom > phylum > class > order > family > genus > specificEpithet > [genericName, scientificName, scientificNameAuthorship, isExtinct]
 
 	$full_tree[$kingdom] = [];
 	$result[$kingdom] = [[],0];
 
-	foreach($data as $row){
+	$file = fopen($data_file,'r');
+	fgets($file);
 
-		$row_data = explode("\t",$row);
+	while(! feof($file)){
 
-		if($row=='' || $row_data[$columns['taxonomicStatus']]!=='accepted name' || $row_data[$columns['taxonomicStatus']]!=='provisionally accepted name')
+		$row_data = explode("\t",fgets($file));
+
+		if($kingdom===FALSE)
+			$kingdom = $row_data[$columns['kingdom']];
+
+		if(!in_array($row_data[$columns['taxonomicStatus']],$taxonomicStatus_to_accept))
 			continue;
 
 		$phylum = $row_data[$columns['phylum']];
@@ -132,10 +119,12 @@ function compile_kingdom($kingdom,&$data=''){
 
 	}
 
-	if($target_path===TRUE)
+	if($data_update===FALSE)
 		return $result;
 
 	$result = json_encode($result);
+
+	$target_path = $compiled_path.$kingdom.$compiled_prefix;
 
 	file_put_contents($target_path,$result);
 

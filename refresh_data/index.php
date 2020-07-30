@@ -1,6 +1,8 @@
 <?php
 
 require_once('../components/header.php');
+#ignore_user_abort(TRUE);
+set_time_limit(300);
 
 function alert($status,$message){
 
@@ -57,8 +59,6 @@ function prepare_dir($dir,$delete_files=TRUE){
 
 
 
-prepare_dir($archives_path,FALSE);
-prepare_dir($results_path,FALSE);
 prepare_dir($compiled_path,FALSE);
 
 
@@ -68,12 +68,26 @@ unset($_GET,$_POST,$_FILES,$_SERVER,$_COOKIE);
 
 
 //prepare to compile data
-$result = require_once('../components/compile.php');
+require_once('../components/compile.php');
 
 //unzip the newest data and compile the tree
-//$result = require_once('../components/update_database.php');
-foreach($kingdoms as $kingdom)
-	compile_kingdom($kingdom);
+//Check if versions changed
+$new_version = file_get_contents($versions_page);
+if(file_exists($versions_path) && $new_version === file_get_contents($versions_path)){
+	alert('success','No need to update data');
+	die;
+}
+
+file_put_contents($versions_path,$new_version);
+
+foreach($kingdoms as $kingdom){
+
+	$source_file = $suffix.$kingdom.$prefix;
+	$temp_file = WORKING_LOCATION.'temp.zip';
+	file_put_contents($temp_file,file_get_contents($source_file));
+	compile_kingdom($kingdom,'zip://'.$temp_file.'#'.$taxonomy_path);
+
+}
 
 compile_general_tree();
 

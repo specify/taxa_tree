@@ -10,27 +10,14 @@ $kingdoms = ['animalia','archaea','bacteria','chromista','fungi','plantae','prot
 # File type
 $prefix = '-bl2.zip';
 
-# Final file type
-$file_prefix = '.zip';
 
-
-
-### UNZIPPING ARCHIVES ###
-
-# Location for downloaded archives
-$archives_path = WORKING_LOCATION . 'archives/';
+### OPENING ARCHIVES ###
 
 # Location for the versions information
 $versions_path = WORKING_LOCATION . 'versions.html';
 
 # Versions page
 $versions_page = 'http://www.catalogueoflife.org/DCA_Export/';
-
-# Location for extracted data
-$results_path = WORKING_LOCATION . 'extracted/';
-
-# Folder path delimiter
-$results_prefix = '/';
 
 
 
@@ -55,8 +42,8 @@ $columns = array_flip(['taxonID','identifier','datasetID','datasetName','accepte
 
 ### STATS REPORTING ###
 
-# A URL that would collect stats. See https://github.com/maxxxxxdlp/taxa_tree_stats
-define('STATS_URL',LINK.'../stats/collect/');
+# A URL that would collect stats. See https://github.com/specify/taxa_tree_stats
+define('STATS_URL','http://biwebdbtest.nhm.ku.edu/sp7-stats/taxa_stats/collect/');
 
 
 

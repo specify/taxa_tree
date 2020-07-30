@@ -25,7 +25,7 @@ You can go over the other settings in the `./config/optional.php` file and see i
 
 For example:
 1. You would likely want to change `SITES_DICTIONARY` and `OPTIONS_DICTIONARY` depending on the sources you are getting data from
-1. You can configure stats reporting by making `STATS_URL` point to a location of `collect/` script from [Taxa Tree Stats reporter](https://github.com/maxxxxxdlp/taxa_tree_stats) 
+1. You can configure stats reporting by making `STATS_URL` point to a location of `collect/` script from [Taxa Tree Stats reporter](https://github.com/specify/taxa_tree_stats) 
 
 ## Credit for used resources
 There were snippets of code/files from the following resources used:

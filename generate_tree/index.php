@@ -7,7 +7,7 @@ set_time_limit(59);
 require_once('../components/header.php');
 
 
-$base_target_dir = WORKING_LOCATION.'results/';
+$base_target_dir = WORKING_LOCATION . 'results/';
 
 
 //Get payload
@@ -20,13 +20,13 @@ if(!array_key_exists('payload', $_POST) || $_POST['payload'] == '')
 		$include_common_names,
 		$include_authors,
 		$fill_in_links,
-		$use_file_splitter
-	]
+		$use_file_splitter,
+	],
+	$user_ip,
 ] = json_decode($_POST['payload'], TRUE);
 
 if(!$choice_tree)
 	exit('Please select at least one tree node to proceed.');
-
 
 
 //Configuration
@@ -51,11 +51,11 @@ if(!file_exists($base_target_dir))
 //Output the header row
 $header_line = '';
 
-$levels = ['kingdom','phylum','class','order','family','genus','species'];
+$levels = ['kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species'];
 
 foreach($levels as $level){
 
-	if($header_line!=='')
+	if($header_line !== '')
 		$header_line .= $column_separator;
 
 	$level_name = ucfirst($level);
@@ -63,9 +63,11 @@ foreach($levels as $level){
 	$header_line .= $level_name;
 
 	if($fill_in_links)
-		$header_line .= $column_separator.$level_name.' Source';
+		$header_line .= $column_separator . $level_name . ' Source';
 
 }
+
+$header_line .= $column_separator . 'Species GUID';
 
 if($include_authors)
 	$header_line .= $column_separator . 'Species Author';
@@ -80,7 +82,6 @@ $header_line .= $line_separator;
 $result = '';
 $lines_count = 0;
 $file_id = 0;
-$target_dir = '';
 
 if($use_file_splitter)
 	$line_limit = 7000;
@@ -89,18 +90,18 @@ else
 
 
 $stats_data = [
-	'site' => 'col',
-	'ip' => $_SERVER['REMOTE_ADDR'],
-	'tree' => $choice_tree,
+	'site'    => 'col',
+	'tree'    => $choice_tree,
+	'ip'      => $user_ip,
 	'options' => [
-		'include_common_names'=>$include_common_names,
-		'include_authors' => $include_authors,
-		'fill_in_links' => $fill_in_links,
-		'use_file_splitter' => $use_file_splitter
+		'include_common_names' => $include_common_names,
+		'include_authors'      => $include_authors,
+		'fill_in_links'        => $fill_in_links,
+		'use_file_splitter'    => $use_file_splitter,
 	],
 ];
 
-if($choice_tree==='file'){
+if($choice_tree === 'file'){
 
 	$stats_data['site'] = 'col_upload';
 	$stats_data['tree'] = $_FILES['file']['name'];
@@ -108,9 +109,7 @@ if($choice_tree==='file'){
 	$result_tree = [];
 
 	require_once('../components/compile.php');
-	$file_content = file_get_contents('zip://'.$_FILES['file']['tmp_name'].'#taxa.txt');
-
-	$result_tree = compile_kingdom(FALSE,$file_content);
+	$result_tree = compile_kingdom(FALSE, 'zip://' . $_FILES['file']['tmp_name'] . '#taxa.txt');
 
 }
 else {
@@ -119,14 +118,14 @@ else {
 
 	foreach($choice_tree as $kingdom => $phylum_data){
 
-		$file_content = json_decode(file_get_contents($compiled_path.$kingdom.$compiled_prefix),TRUE);
+		$file_content = json_decode(file_get_contents($compiled_path . $kingdom . $compiled_prefix), TRUE);
 
 		if(is_string($phylum_data))
 			$result_tree[$kingdom] = $file_content[$kingdom];
 
 		else {
 
-			$result_tree[$kingdom] = [[],$file_content[$kingdom][1]];
+			$result_tree[$kingdom] = [[], $file_content[$kingdom][1]];
 
 			foreach($phylum_data as $phylum => $class_data){
 
@@ -135,7 +134,8 @@ else {
 
 				else {
 
-					$result_tree[$kingdom][$phylum] = [[],$file_content[$kingdom][0][$phylum][1]];
+					$result_tree[$kingdom][$phylum] = [[], $file_content[$kingdom][0][$phylum][1]];
+
 
 					foreach($class_data as $order => $order_data)
 						if(is_string($order_data))
@@ -154,60 +154,139 @@ else {
 }
 
 
-
-if(STATS_URL!=''){
+if(STATS_URL != ''){
 	$options = [
 		'http' => [
 			'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
 			'method'  => 'POST',
-			'content' => http_build_query($stats_data)
-		]
+			'content' => http_build_query($stats_data),
+		],
 	];
 	$context = stream_context_create($options);
 	file_get_contents(STATS_URL, FALSE, $context);
 }
 
 
-ob_start();//some records don't have ids and PHP generates Notice for them
-foreach($result_tree as $kingdom => [$kingdom_data,$kingdom_id])
-	foreach($kingdom_data as $phylum => [$phylum_data,$phylum_id])
-		foreach($phylum_data as $class => [$class_data,$class_id])
-			foreach($class_data as $order => [$order_data,$order_id])
-				foreach($order_data as $family => [$family_data,$family_id])
-					foreach($family_data as $genus => [$genus_data,$genus_id])
-						foreach($genus_data as $species => [$species_author,$species_id]){
+
+
+do // create temp dir for our files
+	$target_dir = $base_target_dir . rand(0, time()) . '/';
+while(file_exists($target_dir));
+
+mkdir($target_dir);
+
+
+ob_start();//some records don't have ids and PHP generates NOTICEs for them
+
+
+foreach($result_tree as $kingdom => $kingdom_data){
+
+	if(!array_key_exists(0,$kingdom_data))
+		continue;
+	if(count($kingdom_data) == 1)
+		$kingdom_data = $kingdom_data[0];
+	else
+		[$kingdom_data, $kingdom_id] = $kingdom_data;
+
+	foreach($kingdom_data as $phylum => $phylum_data){
+
+		if(!array_key_exists(0,$phylum_data))
+			continue;
+		if(count($phylum_data) == 1)
+			$phylum_data = $phylum_data[0];
+		else
+			[$phylum_data, $phylum_id] = $phylum_data;
+
+		foreach($phylum_data as $class => $class_data){
+
+			if(!array_key_exists(0,$class_data))
+				continue;
+			if(count($class_data) == 1)
+				$class_data = $class_data[0];
+			else
+				[$class_data, $class_id] = $class_data;
+
+
+			foreach($class_data as $order => $order_data){
+
+				if(!array_key_exists(0,$order_data))
+					continue;
+				if(count($order_data) == 1)
+					$order_data = $order_data[0];
+				else
+					[$order_data, $order_id] = $order_data;
+
+
+				foreach($order_data as $family => $family_data){
+
+					if(!array_key_exists(0,$family_data))
+						continue;
+					if(count($family_data) == 1)
+						$family_data = $family_data[0];
+					else
+						[$family_data, $family_id] = $family_data;
+
+
+					foreach($family_data as $genus => $genus_data){
+
+						if(!array_key_exists(0,$genus_data))
+							continue;
+						if(count($genus_data) == 1)
+							$genus_data = $genus_data[0];
+						else
+							[$genus_data, $genus_id] = $genus_data;
+
+
+						foreach($genus_data as $species => $species_data){
+
+							if(!array_key_exists(0,$species_data))
+								continue;
+							if(count($species_data) == 1)
+								$species_data = $species_data[0];
+							else
+								[$species_author, $species_id] = $species_data;
+
 
 							$line = '';
 							foreach($levels as $level){
 
-								if($line!=='')
+								if($line !== '')
 									$line .= $column_separator;
 
-								if($level=='kingdom')
+								if($level == 'kingdom')
 									$line .= ucfirst($$level);
 								else
 									$line .= $$level;
 
 								if($fill_in_links){
 
-									$id_field_name = $level.'_id';
+									$id_field_name = $level . '_id';
 
 									$line .= $column_separator;
 
-									if($$id_field_name!=0)
-										$line .= LINK.'redirect/?id='.$$id_field_name;
+									if(isset($$id_field_name) && $$id_field_name != 0){
+
+										if($level == 'species')
+											$line .= $$id_field_name . $column_separator;
+
+										$line .= LINK . 'redirect/?id=' . $$id_field_name;
+
+									}
+									elseif($level == 'species')
+										$line .= $column_separator;
+
 
 								}
 
 							}
 
 							if($include_authors)
-								$line .= $column_separator.$species_author;
+								$line .= $column_separator . $species_author;
 
 							if($include_common_names)
-								$line .= $column_separator.$genus;
+								$line .= $column_separator . $genus;
 
-							$result .= $line.$line_separator;
+							$result .= $line . $line_separator;
 
 							$lines_count++;
 
@@ -216,19 +295,23 @@ foreach($result_tree as $kingdom => [$kingdom_data,$kingdom_id])
 
 
 						}
+					}
+				}
+			}
+		}
+	}
+}
 
 $output = ob_get_contents();
 ob_end_clean();
 
-if($output!=='')
-	file_put_contents(WORKING_LOCATION.'error_'.rand(0,10).'.log',json_encode([$output,$_SERVER,$_GET,$_POST]));
-
+if($output !== '')
+	file_put_contents(WORKING_LOCATION . 'error_' . rand(0, 10) . '.log', json_encode([$output, $_SERVER, $_GET, $_POST]));
 
 
 function save_result(){
 
 	global $result;
-	global $base_target_dir;
 	global $file_id;
 	global $header_line;
 	global $target_dir;
@@ -236,75 +319,64 @@ function save_result(){
 
 	$file_id++;
 
-	if($result=='')
+	if($result == '')
 		return;
 
-	if($target_dir == ''){
-
-		do
-			$target_dir = $base_target_dir.rand(0,time()).'/';
-		while(file_exists($target_dir));
-
-		mkdir($target_dir);
-
-	}
-
-	file_put_contents($target_dir.'tree_'.$file_id.'.csv',$header_line.$result);
+	file_put_contents($target_dir . 'tree_' . $file_id . '.csv', $header_line . $result);
 
 	$result = '';
 	$lines_count = 0;
 
-	if($file_id>200)
+	if($file_id > 200)
 		exit('File limit reached');
 
 }
 
 
-
 //output the result
 if(DEBUG)
-	echo $header_line.$result;
+	echo $header_line . $result;
 else {
 
 	save_result();
 
-	$result_file_name = 'Catalogue of Life '.date('d.m.Y-H_m_i');
+	$result_file_name = 'Catalogue of Life ' . date('d.m.Y-H_m_i');
 
-	if($file_id==0)
+	if($file_id == 0)
 		exit('There is no data to return');
 
-	if($file_id==1){//there is only one file to download
+	if($file_id == 1){//there is only one file to download
 
-		$target_file = $target_dir.'tree_1.csv';
+		$target_file = $target_dir . 'tree_1.csv';
 
 		header("Content-type: text/csv");
-		header("Content-Disposition: attachment; filename=".$result_file_name.".csv");
+		header("Content-Disposition: attachment; filename=" . $result_file_name . ".csv");
 		header("Content-length: " . filesize($target_file));
 		echo file_get_contents($target_file);
 
 	}
 	else {//zip the files
 
-		$archive_name = $target_dir.'tree.zip';
+		$archive_name = $target_dir . 'tree.zip';
 
 		$zip = new ZipArchive;
 
-		if($zip -> open($archive_name, ZipArchive::CREATE ) !== TRUE)
+		if($zip->open($archive_name, ZipArchive::CREATE) !== TRUE)
 			exit('Failed to zip files');
 
-		foreach(glob($target_dir.'*.csv') as $file_name){
+		foreach(glob($target_dir . '*.csv') as $file_name){
 
-			$basename = explode("/",$file_name);
+			$basename = explode("/", $file_name);
 			$basename = end($basename);
 
-			$zip->addFile($file_name,$basename);
+			$zip->addFile($file_name, $basename);
 
 		}
 
-		$zip ->close();
+		$zip->close();
 
 		header("Content-type: application/zip");
-		header("Content-Disposition: attachment; filename=".$result_file_name.".zip");
+		header("Content-Disposition: attachment; filename=" . $result_file_name . ".zip");
 		header("Content-length: " . filesize($archive_name));
 
 		echo file_get_contents($archive_name);
@@ -312,8 +384,8 @@ else {
 
 	}
 
-	if($target_dir!==''){
-		foreach (glob($target_dir.'*.*') as $file_name)
+	if($target_dir !== ''){
+		foreach(glob($target_dir . '*.*') as $file_name)
 			unlink($file_name);
 
 		rmdir($target_dir);
