@@ -67,7 +67,23 @@ if(!file_exists($rows_location) ||
 
 //Show the tree and other options ?>
 
-<h3>Step 2: Select the nodes you want to have in your database</h3>
+<h3>Step 2: Select the type of export you want to create</h3>
+
+<div class="margined_container">
+
+	<label class="form-check-label">
+		<input class="form-check-input radio" type="radio" name="radio" id="radio_2" value="workbench" checked>
+		Export for Specify Workbench
+	</label><br>
+
+	<label class="form-check-label">
+		<input class="form-check-input radio" type="radio" name="radio" id="radio_1" value="wizard">
+		Export for Specify Wizard
+	</label>
+
+</div>
+
+<h3>Step 3: Select the nodes you want to have in your database</h3>
 
 <ul class="pl-0" id="root"> <?php
 
@@ -118,59 +134,63 @@ if(!file_exists($rows_location) ||
 
 </ul>
 
-<h3>Step 3: Select the taxonomic levels that are present in your database</h3><?php
+<div id="workbench_only_options">
 
-$new_specify_ranks = [];
-foreach($specify_ranks as $rank){
+	<h3>Step 4: Select the taxonomic levels that are present in your database</h3><?php
 
-	$rank = explode(',',$rank);
-	$new_specify_ranks[$rank[0]] = count($rank)!=1;
+	$new_specify_ranks = [];
+	foreach($specify_ranks as $rank){
 
-}
-$specify_ranks = $new_specify_ranks;
+		$rank = explode(',',$rank);
+		$new_specify_ranks[$rank[0]] = count($rank)!=1;
+
+	}
+	$specify_ranks = $new_specify_ranks;
 
 
-foreach($ranks[$kingdom] as $rank_id => $rank){
+	foreach($ranks[$kingdom] as $rank_id => $rank){
 
-	if(!array_key_exists($rank[0],$specify_ranks))
-		continue;
+		if(!array_key_exists($rank[0],$specify_ranks))
+			continue;
 
-	$checked = '';
-	if($specify_ranks[$rank[0]])
-		$checked = ' checked'; ?>
+		$checked = '';
+		if($specify_ranks[$rank[0]])
+			$checked = ' checked'; ?>
+
+		<div class="custom-control custom-checkbox">
+			<input type="checkbox" class="custom-control-input rank" id="rank_<?=$rank_id?>" <?=$checked?>>
+			<label class="custom-control-label" for="rank_<?=$rank_id?>"><?=ucfirst($rank[0])?></label>
+		</div> <?php
+
+	} ?>
+
+	<h3>Step 5: Select which optional data should be present</h3>
 
 	<div class="custom-control custom-checkbox">
-		<input type="checkbox" class="custom-control-input rank" id="rank_<?=$rank_id?>" <?=$checked?>>
-		<label class="custom-control-label" for="rank_<?=$rank_id?>"><?=ucfirst($rank[0])?></label>
-	</div> <?php
+		<input type="checkbox" class="custom-control-input option" id="option_1">
+		<label class="custom-control-label" for="option_1">Include Common Names</label>
+	</div>
 
-} ?>
+	<div class="custom-control custom-checkbox">
+		<input type="checkbox" class="custom-control-input option" id="option_2">
+		<label class="custom-control-label" for="option_2">Include Authors</label>
+	</div>
 
-<h3>Step 4: Select which optional data should be present</h3>
+	<div class="custom-control custom-checkbox">
+		<input type="checkbox" class="custom-control-input option" id="option_3">
+		<label class="custom-control-label" for="option_3">Include citations</label>
+	</div>
 
-<div class="custom-control custom-checkbox">
-	<input type="checkbox" class="custom-control-input option" id="option_1">
-	<label class="custom-control-label" for="option_1">Include Common Names</label>
-</div>
+	<div class="custom-control custom-checkbox">
+		<input type="checkbox" class="custom-control-input option" id="option_4">
+		<label class="custom-control-label" for="option_4">Replace empty citations with links to <a href="https://itis.gov">itis.gov</a></label>
+	</div>
 
-<div class="custom-control custom-checkbox">
-	<input type="checkbox" class="custom-control-input option" id="option_2">
-	<label class="custom-control-label" for="option_2">Include Authors</label>
-</div>
-
-<div class="custom-control custom-checkbox">
-	<input type="checkbox" class="custom-control-input option" id="option_3">
-	<label class="custom-control-label" for="option_3">Include Sources</label>
-</div>
-
-<div class="custom-control custom-checkbox">
-	<input type="checkbox" class="custom-control-input option" id="option_4">
-	<label class="custom-control-label" for="option_4">Replace empty sources with links to <a href="https://itis.gov">itis.gov</a></label>
-</div>
-
-<div class="custom-control custom-checkbox mb-4">
+	<div class="custom-control custom-checkbox mb-4">
 	<input type="checkbox" class="custom-control-input option" id="option_5" checked>
 	<label class="custom-control-label" for="option_5">Split the resulting tree into CSV files of less than 7000 records</label>
+</div>
+
 </div>
 
 <form action="<?=LINK?>generate_tree/?kingdom=<?=$kingdom?>" method="POST" class="mt-4">

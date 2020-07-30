@@ -1,17 +1,21 @@
 $( function () {
 
 	const options = $( '.option' );
+	const radios = $( '.radio' );
 	const ranks = $( '.rank' );
+	const workbench_only_options = $( '#workbench_only_options' );
 	const get_result_button = $( '#get_result_button' );
 	const arrow = $( '.arrow' );
 	const checkbox = $( '.checkbox' );
 	const root = $( '#root' );
 	const payload_field = $( '#payload_field' );
+	let user_ip = '';
+
+	let export_type = 'workbench';
 
 
 	// Sending results
 	get_result_button.click( function () {
-
 
 		//Get tree
 		const tree = get_children(root);
@@ -41,7 +45,7 @@ $( function () {
 
 
 		//Send data
-		const payload = JSON.stringify([tree,ranks_values,options_values]);
+		const payload = JSON.stringify([tree,ranks_values,options_values,export_type,user_ip]);
 
 		payload_field.attr('value',payload);
 
@@ -195,5 +199,29 @@ $( function () {
 	ranks.change(function(){//set a listener for a checkbox change
 		shadow_rank($(this));
 	});
+
+
+	//Export type change
+	radios.change(function(){
+		export_type = this.value;
+
+		if(export_type==="wizard")
+			workbench_only_options.hide();
+		else
+			workbench_only_options.show();
+	});
+
+
+	//Get user IP
+	const xmlHttp = new XMLHttpRequest();
+	xmlHttp.onreadystatechange = function() {
+		if (xmlHttp.readyState === 4 && xmlHttp.status === 200){
+			const response_json = xmlHttp.responseText;
+			const response = JSON.parse(response_json);
+			user_ip = response.ip;
+		}
+	}
+	xmlHttp.open("GET", "https://api.ipify.org?format=json", true);
+	xmlHttp.send(null);
 
 } );

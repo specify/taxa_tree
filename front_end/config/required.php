@@ -29,7 +29,7 @@ if(CONFIGURATION==='localhost'){
 	# Set this to an empty folder
 	# Make sure the web server has write permissions to this folder
 	# **Warning!** All of the files present in this directory would be deleted
-	define('WORKING_LOCATION','/Users/mambo/Downloads/python-taxonomy/');
+	define('WORKING_LOCATION','/Users/mambo/Downloads/sites_data/itis/');
 
 }
 

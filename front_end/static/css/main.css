@@ -1,4 +1,4 @@
-body {
+body, .margined_container {
 	margin: 20px !important;
 }
 
@@ -9,7 +9,7 @@ h1, h3 {
 
 img {
 	height: 30px;
-	background: #f00; /* TODO: remove this */
+	background: #f00;
 	padding: 10px;
 }
 

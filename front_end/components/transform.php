@@ -1,37 +1,26 @@
 <?php
 
-if(!array_key_exists('file',$_FILES)){ ?>
-
-	<form method="post" enctype="multipart/form-data">
-		<input type="file" name="file" accept="*.zip"><br>
-		<input type="submit" value="Make this file work with SpWizard!">
-	</form> <?php
-
-	exit;
-
-}
-
-define('COL',"\t");
-define('LINE',"\n");
-
-header("Pragma: no-cache");
-header("Expires: 0");
-header("Content-type: text/csv");
-header("Content-Disposition: attachment; filename=tree.csv");
-
-
-$handle = fopen($_FILES["file"]["tmp_name"], "r");
+$handle = fopen($target_file, "r");
 if(!$handle)
 	die;
 
 $columns = fgets($handle);
-$columns = explode("\t",$columns);
+$columns = trim($columns);
+$columns = explode($column_separator,$columns);
 $columns = array_flip($columns);
 
-if(array_key_exists('Division',$columns)){
-	$columns['Phylum'] = $columns['Division'];
-	unset($columns['Division']);
-}
+$columns_to_rename = [
+	'Division' => 'Phylum',
+	'Species GUID' => 'Species LSID',
+	'Subspecies GUID' => 'Subspecies LSID',
+];
+
+foreach($columns_to_rename as $old_name => $new_name)
+	if(array_key_exists($old_name,$columns)){
+		$columns[$new_name] = $columns[$old_name];
+		unset($columns[$old_name]);
+	}
+
 
 $results_array = [
 	'Kingdom',
@@ -62,40 +51,38 @@ $results_array = [
 	'Family Common Name',
 	'Species Author',
 	'Species Source',
-//	'Species LSID',
+	'Species LSID',
 	'Species Common Name',
 	'Subspecies Author',
 	'Subspecies Source',
-//	'Subspecies LSID',
+	'Subspecies LSID',
 	'Subspecies Common Name',
 ];
 
-$results = implode("\t",$results_array);
+$results = implode($column_separator,$results_array);
 $header = strtolower($results);
-echo $header.LINE;
+echo $header.$line_separator;
 
-$results_array = explode("\t",$results);
+$results_array = explode($column_separator,$results);
 
 while (($line = fgets($handle)) !== false) {
 
 	$line = trim($line);
 
-	$line = explode("\t",$line);
+	$line = explode($column_separator,$line);
 
 	$result_line = '';
 	foreach($results_array as $result){
 
 		if($result_line!='')
-			$result_line .= COL;
+			$result_line .= $column_separator;
 
 		if(array_key_exists($result,$columns) && array_key_exists($columns[$result],$line))
 			$result_line .= $line[$columns[$result]];
 
-		//elseif($result=='Species LSID' || $result=='Subspecies LSID')
-
 	}
 
-	$result_line .= LINE;
+	$result_line .= $line_separator;
 
 	echo $result_line;
 
