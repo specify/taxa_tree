@@ -201,12 +201,12 @@ foreach($ranks[$kingdom] as $rank_id => $rank){
 
 <div class="custom-control custom-checkbox">
 	<input type="checkbox" class="custom-control-input option" id="option_3">
-	<label class="custom-control-label" for="option_3">Include Sources</label>
+	<label class="custom-control-label" for="option_3">Include citations</label>
 </div>
 
 <div class="custom-control custom-checkbox">
 	<input type="checkbox" class="custom-control-input option" id="option_4">
-	<label class="custom-control-label" for="option_4">Replace empty sources with links to <a href="https://www.gbif.org/">gbif.org</a></label>
+	<label class="custom-control-label" for="option_4">Replace empty citations with links to <a href="https://www.gbif.org/">gbif.org</a></label>
 </div>
 
 <div class="custom-control custom-checkbox mb-4">

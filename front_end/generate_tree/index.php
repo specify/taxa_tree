@@ -72,7 +72,8 @@ if(!array_key_exists('payload', $_POST) || $_POST['payload'] == '')
 		$include_sources,
 		$fill_in_links,
 		$use_file_splitter
-	]
+	],
+	$user_ip
 ] = json_decode($_POST['payload'], TRUE);
 
 if(!$choice_tree)
@@ -164,9 +165,9 @@ if(STATS_URL!=''){
 
 	$stats_data = [
 		'site'    => 'gbif',
-		'ip'      => $_SERVER['REMOTE_ADDR'],
 		'tree'    => $choice_tree,
 		'ranks'   => $friendly_selected_ranks,
+		'ip'      => $user_ip,
 		'options' => [
 			'include_common_names' => $include_common_names,
 			'include_authors'      => $include_authors,
@@ -184,7 +185,7 @@ if(STATS_URL!=''){
 		]
 	];
 	$context = stream_context_create($options);
-	$result = file_get_contents(STATS_URL, FALSE, $context);
+	file_get_contents(STATS_URL, FALSE, $context);
 }
 
 
