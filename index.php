@@ -116,8 +116,13 @@ function checkbox($name,$collapsable=TRUE){
 </div>
 
 <div class="custom-control custom-checkbox">
-	<input type="checkbox" class="custom-control-input option" id="option_4">
-	<label class="custom-control-label" for="option_4">Add links to <a target="_blank" href="http://catalogueoflife.org/">catalogueoflife.org</a></label>
+	<input type="checkbox" class="custom-control-input option" id="option_3">
+	<label class="custom-control-label" for="option_3">Add links to <a target="_blank" href="http://catalogueoflife.org/">catalogueoflife.org</a></label>
+</div>
+
+<div class="custom-control custom-checkbox">
+	<input type="checkbox" class="custom-control-input option" id="option_4" checked>
+	<label class="custom-control-label" for="option_4">Exclude extinct taxa</label>
 </div>
 
 <div class="custom-control custom-checkbox mb-4">

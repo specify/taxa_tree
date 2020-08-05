@@ -64,7 +64,7 @@ prepare_dir($compiled_path,FALSE);
 
 //memory management
 ini_set('memory_limit','2048M');
-unset($_GET,$_POST,$_FILES,$_SERVER,$_COOKIE);
+unset($_POST,$_FILES,$_SERVER,$_COOKIE);
 
 
 //prepare to compile data
@@ -73,7 +73,7 @@ require_once('../components/compile.php');
 //unzip the newest data and compile the tree
 //Check if versions changed
 $new_version = file_get_contents($versions_page);
-if(file_exists($versions_path) && $new_version === file_get_contents($versions_path)){
+if(!array_key_exists('force',$_GET) &&  file_exists($versions_path) && $new_version === file_get_contents($versions_path)){
 	alert('success','No need to update data');
 	die;
 }

@@ -15,7 +15,7 @@ function compile_kingdom($kingdom,$data_file){
 		global $full_tree;
 
 	//where taxonomicStatus in ["accepted name", "provisionally accepted name", ""]
-	//kingdom > phylum > class > order > family > genus > specificEpithet > [genericName, scientificName, scientificNameAuthorship, isExtinct]
+	//kingdom > phylum > class > order > family > genus > specificEpithet > [genericName, scientificNameAuthorship, isExtinct]
 
 	$full_tree[$kingdom] = [];
 	$result[$kingdom] = [[],0];
@@ -25,7 +25,7 @@ function compile_kingdom($kingdom,$data_file){
 
 	while(! feof($file)){
 
-		$row_data = explode("\t",fgets($file));
+		$row_data = explode("\t",trim(fgets($file)));
 
 		if($kingdom===FALSE)
 			$kingdom = $row_data[$columns['kingdom']];
@@ -41,6 +41,8 @@ function compile_kingdom($kingdom,$data_file){
 		$specificEpithet = $row_data[$columns['specificEpithet']];
 		$scientificNameAuthorship = $row_data[$columns['scientificNameAuthorship']];
 		$identifier = $row_data[$columns['identifier']];
+		$genericName = $row_data[$columns['genericName']];
+		$isExtinct = $row_data[$columns['isExtinct']];
 
 
 		if($phylum==''){
@@ -72,7 +74,7 @@ function compile_kingdom($kingdom,$data_file){
 
 
 		if($order==''){
-			$kingdom_link[$class][1] = $identifier;
+			$phylum_link[$class][1] = $identifier;
 			continue;
 		}
 
@@ -86,7 +88,7 @@ function compile_kingdom($kingdom,$data_file){
 
 
 		if($family==''){
-			$kingdom_link[$order][1] = $identifier;
+			$class_link[$order][1] = $identifier;
 			continue;
 		}
 
@@ -97,7 +99,7 @@ function compile_kingdom($kingdom,$data_file){
 
 
 		if($genus==''){
-			$kingdom_link[$family][1] = $identifier;
+			$order_link[$family][1] = $identifier;
 			continue;
 		}
 
@@ -108,14 +110,14 @@ function compile_kingdom($kingdom,$data_file){
 
 
 		if($specificEpithet==''){
-			$kingdom_link[$genus][1] = $identifier;
+			$family_link[$genus][1] = $identifier;
 			continue;
 		}
 
 		$genus_link = &$family_link[$genus][0];
 
 		if(!array_key_exists($specificEpithet,$genus_link))
-			$genus_link[$specificEpithet] = [$scientificNameAuthorship,$identifier];
+			$genus_link[$specificEpithet] = [$genericName, $scientificNameAuthorship, $isExtinct, $identifier];
 
 	}
 

@@ -1,11 +1,9 @@
 <?php
 
-
 ini_set('memory_limit', '2048M');
 set_time_limit(59);
 
 require_once('../components/header.php');
-
 
 $base_target_dir = WORKING_LOCATION . 'results/';
 
@@ -20,6 +18,7 @@ if(!array_key_exists('payload', $_POST) || $_POST['payload'] == '')
 		$include_common_names,
 		$include_authors,
 		$fill_in_links,
+		$exclude_extinct,
 		$use_file_splitter,
 	],
 	$user_ip,
@@ -62,12 +61,12 @@ foreach($levels as $level){
 
 	$header_line .= $level_name;
 
+	$header_line .= $column_separator . $level_name.' GUID';
+
 	if($fill_in_links)
 		$header_line .= $column_separator . $level_name . ' Source';
 
 }
-
-$header_line .= $column_separator . 'Species GUID';
 
 if($include_authors)
 	$header_line .= $column_separator . 'Species Author';
@@ -97,6 +96,7 @@ $stats_data = [
 		'include_common_names' => $include_common_names,
 		'include_authors'      => $include_authors,
 		'fill_in_links'        => $fill_in_links,
+		'exclude_extinct'      => $exclude_extinct,
 		'use_file_splitter'    => $use_file_splitter,
 	],
 ];
@@ -134,7 +134,7 @@ else {
 
 				else {
 
-					$result_tree[$kingdom][$phylum] = [[], $file_content[$kingdom][0][$phylum][1]];
+					$result_tree[$kingdom][0][$phylum] = [[], $file_content[$kingdom][0][$phylum][1]];
 
 
 					foreach($class_data as $order => $order_data)
@@ -167,146 +167,73 @@ if(STATS_URL != ''){
 }
 
 
-
-
 do // create temp dir for our files
 	$target_dir = $base_target_dir . rand(0, time()) . '/';
 while(file_exists($target_dir));
 
 mkdir($target_dir);
 
+$lines_count = 0;
+function show_node($node_name, $node_data, $line=''){
 
-ob_start();//some records don't have ids and PHP generates NOTICEs for them
+	global $include_common_names;
+	global $include_authors;
+	global $fill_in_links;
+	global $exclude_extinct;
+	global $lines_count;
+	global $line_limit;
+	global $column_separator;
+	global $line_separator;
+	global $result;
 
+	if(is_string($node_data[0])){//is species
+		$node_common_name = $node_data[0];
+		$node_author = $node_data[1];
+		$node_is_extinct = $node_data[2];
+		$node_id = $node_data[3];
 
-foreach($result_tree as $kingdom => $kingdom_data){
+		if($node_is_extinct==="true" && $exclude_extinct)
+			return;
 
-	if(!array_key_exists(0,$kingdom_data))
-		continue;
-	if(count($kingdom_data) == 1)
-		$kingdom_data = $kingdom_data[0];
-	else
-		[$kingdom_data, $kingdom_id] = $kingdom_data;
+		$line .= $node_name.$column_separator.$node_id;
 
-	foreach($kingdom_data as $phylum => $phylum_data){
+		if($fill_in_links)
+			$line .= $column_separator.LINK.'redirect/?id='.$node_id;
 
-		if(!array_key_exists(0,$phylum_data))
-			continue;
-		if(count($phylum_data) == 1)
-			$phylum_data = $phylum_data[0];
-		else
-			[$phylum_data, $phylum_id] = $phylum_data;
+		if($include_authors)
+			$line .= $column_separator.$node_author;
 
-		foreach($phylum_data as $class => $class_data){
+		if($include_common_names)
+			$line .= $column_separator.$node_common_name;
 
-			if(!array_key_exists(0,$class_data))
-				continue;
-			if(count($class_data) == 1)
-				$class_data = $class_data[0];
-			else
-				[$class_data, $class_id] = $class_data;
+		$result .= $line.$line_separator;
 
-
-			foreach($class_data as $order => $order_data){
-
-				if(!array_key_exists(0,$order_data))
-					continue;
-				if(count($order_data) == 1)
-					$order_data = $order_data[0];
-				else
-					[$order_data, $order_id] = $order_data;
-
-
-				foreach($order_data as $family => $family_data){
-
-					if(!array_key_exists(0,$family_data))
-						continue;
-					if(count($family_data) == 1)
-						$family_data = $family_data[0];
-					else
-						[$family_data, $family_id] = $family_data;
-
-
-					foreach($family_data as $genus => $genus_data){
-
-						if(!array_key_exists(0,$genus_data))
-							continue;
-						if(count($genus_data) == 1)
-							$genus_data = $genus_data[0];
-						else
-							[$genus_data, $genus_id] = $genus_data;
-
-
-						foreach($genus_data as $species => $species_data){
-
-							if(!array_key_exists(0,$species_data))
-								continue;
-							if(count($species_data) == 1)
-								$species_data = $species_data[0];
-							else
-								[$species_author, $species_id] = $species_data;
-
-
-							$line = '';
-							foreach($levels as $level){
-
-								if($line !== '')
-									$line .= $column_separator;
-
-								if($level == 'kingdom')
-									$line .= ucfirst($$level);
-								else
-									$line .= $$level;
-
-								if($fill_in_links){
-
-									$id_field_name = $level . '_id';
-
-									$line .= $column_separator;
-
-									if(isset($$id_field_name) && $$id_field_name != 0){
-
-										if($level == 'species')
-											$line .= $$id_field_name . $column_separator;
-
-										$line .= LINK . 'redirect/?id=' . $$id_field_name;
-
-									}
-									elseif($level == 'species')
-										$line .= $column_separator;
-
-
-								}
-
-							}
-
-							if($include_authors)
-								$line .= $column_separator . $species_author;
-
-							if($include_common_names)
-								$line .= $column_separator . $genus;
-
-							$result .= $line . $line_separator;
-
-							$lines_count++;
-
-							if($line_limit !== FALSE && $lines_count >= $line_limit)
-								save_result();
-
-
-						}
-					}
-				}
-			}
-		}
 	}
+	else {
+
+		$node_id = $node_data[1];
+
+		$line .= $node_name.$column_separator.$node_id;
+
+		if($fill_in_links)
+			$line .= $column_separator.LINK.'redirect/?id='.$node_id;
+
+		$result .= $line.$line_separator;
+
+		foreach($node_data[0] as $child_node_name => $child_node_data)
+			show_node($child_node_name,$child_node_data, $line.$column_separator);
+
+	}
+	
+	$lines_count++;
+
+	if($line_limit !== FALSE && $lines_count >= $line_limit)
+		save_result();
+
 }
 
-$output = ob_get_contents();
-ob_end_clean();
-
-if($output !== '')
-	file_put_contents(WORKING_LOCATION . 'error_' . rand(0, 10) . '.log', json_encode([$output, $_SERVER, $_GET, $_POST]));
+foreach($result_tree as $kingdom => $kingdom_data)
+	show_node($kingdom,$kingdom_data);
 
 
 function save_result(){
