@@ -94,7 +94,7 @@ else
 	$arrow_location = LINK.'static/svg/arrow.svg';
 
 
-	function show_node($node){
+	function show_node($node,$show_children=FALSE,$node_id=''){
 
 		global $stop_rank;
 		global $ranks;
@@ -108,14 +108,14 @@ else
 		$rank_name = $ranks[$kingdom][$node[1]][0];
 		$rank_id = $node[1];
 
-		$show_children = $rank_id<$stop_rank && count($node[2])>0;
+		$show_children = ($rank_id<$stop_rank && count($node[2])>0) || $show_children;
 
 		if($show_children)
 			$collapse = '<button style="background-image: url('.$arrow_location.')" class="arrow"></button>';
 		else
 			$collapse = '';
 
-		echo '<li data-name="'.$node_name.'">
+		echo '<li data-id="'.$node_id.'">
 			<button class="checkbox"></button>
 			'.$collapse.
 		    $capitalized_node_name.
@@ -140,11 +140,11 @@ else
 
 				if(count($indirect_children)!=0){
 					$direct_children_rank = $ranks[$kingdom][$rank_id][2];
-					show_node([['(no ' . $ranks[$kingdom][$direct_children_rank][0] . ')'], $direct_children_rank, $indirect_children]);
+					show_node([['(no ' . $ranks[$kingdom][$direct_children_rank][0] . ')'], $direct_children_rank, $indirect_children],TRUE);
 				}
 
 				foreach($direct_children as $children_id)
-					show_node($tree[$children_id]); ?>
+					show_node($tree[$children_id],FALSE,$children_id); ?>
 
 			</ul> <?php
 		}
@@ -153,7 +153,7 @@ else
 
 	}
 
-	show_node($tree[$kingdom]); ?>
+	show_node($tree[$kingdom],FALSE,$kingdom); ?>
 
 </ul>
 

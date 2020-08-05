@@ -163,9 +163,25 @@ if(STATS_URL!=''){
 	foreach($selected_ranks as $rank_id)
 		$friendly_selected_ranks[] = $ranks[$kingdom][$rank_id][0];
 
+	function tree_to_human_tree($node,$friendly_tree=[]){
+
+		if(is_string($node))
+			return $node;
+
+		global $tree;
+
+		foreach($node as $node_id => $node_data)
+			$friendly_tree[$tree[$node_id][0][0]] = tree_to_human_tree($node_data);
+
+		return $friendly_tree;
+
+	}
+
+	$human_friendly_choice_tree = tree_to_human_tree($choice_tree);
+
 	$stats_data = [
 		'site'    => 'gbif',
-		'tree'    => $choice_tree,
+		'tree'    => $human_friendly_choice_tree,
 		'ranks'   => $friendly_selected_ranks,
 		'ip'      => $user_ip,
 		'options' => [
@@ -189,11 +205,16 @@ if(STATS_URL!=''){
 }
 
 
+do
+	$target_dir = $base_target_dir.rand(0,time()).'/';
+while(file_exists($target_dir));
+
+mkdir($target_dir);
+
 //Output the data
 $result = '';
 $lines_count = 0;
 $file_id = 0;
-$target_dir = '';
 
 if($use_file_splitter)
 	$line_limit = 7000;
@@ -226,11 +247,14 @@ function show_node(
 	$node_name = $node[0][0];
 	$rank = $node[1];
 
-	if(is_array($parent_choice_tree) && !array_key_exists($node_name, $parent_choice_tree))
+	if(is_array($parent_choice_tree) && !array_key_exists($taxon_number,$parent_choice_tree))
 		return;
 
+	if($parent_rank==$rank)//fix a bug with records that have the parent with the same rank
+		return;//e.x https://www.gbif.org/species/9206778
+
 	if($parent_choice_tree !== "true")
-		$choice_tree = $parent_choice_tree[$node_name];
+		$choice_tree = $parent_choice_tree[$taxon_number];
 	else
 		$choice_tree = "true";
 
@@ -286,6 +310,7 @@ function handle_missing_ranks(
 	global $required_ranks;
 	global $fill_in_links;
 
+
 	if($rank==0)
 		return '';
 
@@ -322,26 +347,16 @@ function handle_missing_ranks(
 function save_result(){
 
 	global $result;
-	global $base_target_dir;
 	global $file_id;
 	global $header_line;
 	global $target_dir;
 	global $lines_count;
 
-	$file_id++;
 
 	if($result=='')
 		return;
 
-	if($target_dir == ''){
-
-		do
-			$target_dir = $base_target_dir.rand(0,time()).'/';
-		while(file_exists($target_dir));
-
-		mkdir($target_dir);
-
-	}
+	$file_id++;
 
 	file_put_contents($target_dir.'tree_'.$file_id.'.csv',$header_line.$result);
 
@@ -360,6 +375,9 @@ show_node($kingdom, $tree[$kingdom], $choice_tree);
 if(DEBUG)
 	echo $result;
 else {
+
+	if($result=='' && $file_id===0)//prevents errors if no result was generated
+		$result = "\n";
 
 	save_result();
 

@@ -13,7 +13,6 @@ $( function () {
 	// Sending results
 	get_result_button.click( function () {
 
-
 		//Get tree
 		const tree = get_children(root);
 
@@ -59,16 +58,16 @@ $( function () {
 
 			const child = $(el);
 
-			const child_name = child.attr('data-name');
+			const child_name = child.attr('data-id');
 
-			if(child_name.substr(0,4)==='(no ')
+			const ul = child.find('> ul');
+
+			if(child_name==='')
 				tree = get_children(ul);
 
-			else if(child.hasClass('mixed')){
-				const ul = child.find('> ul');
-				if(ul.length===1)
+			else if(child.hasClass('mixed') && ul.length===1)
 					tree[child_name] = get_children(ul);
-			}
+
 			else if(child.hasClass('checked'))
 				tree[child_name] = 'true';
 

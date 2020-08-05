@@ -9,7 +9,7 @@ from os import system, path
 #
 print('Config')
 site_link = 'http://localhost:80/'
-target_dir = '/Users/mambo/Downloads/gbif/'
+target_dir = '/Users/mambo/Downloads/sites_data/gbif/'
 source_url = 'http://rs.gbif.org/datasets/backbone/backbone-current.zip'
 meta_url = 'https://api.gbif.org/v1/dataset/d7dddbf4-2cf0-4f39-9b2a-bb099caae36c/document'
 mysql_host = 'localhost'
@@ -130,15 +130,6 @@ def list_flip(original_list):
     for item in original_list:
         dictionary[item] = item_id
         item_id = item_id + 1
-
-    return dictionary
-
-
-def dict_flip(original_dict):
-    dictionary = {}
-
-    for key, value in original_dict.items():
-        dictionary[value] = key
 
     return dictionary
 
