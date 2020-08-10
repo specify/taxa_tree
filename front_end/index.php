@@ -18,7 +18,8 @@ if(
 	exit('Can\'t read data from kingdoms.json'); ?>
 
 
-<h1>Taxonomic tree generator</h1> <?php
+<h1>Taxonomic tree generator</h1>
+<h2>Data provided by <a target="_blank" href="https://www.gbif.org/dataset/7ddf754f-d193-4cc9-b351-99906754a03b">GBIF and CoL</a></h2><?php
 
 // Kingdom selection
 if(!array_key_exists('kingdom',$_GET) || !array_key_exists($_GET['kingdom'],$kingdoms)){ ?>
