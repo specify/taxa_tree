@@ -18,7 +18,8 @@ if(
 	exit('Can\'t read data from kingdoms.json'); ?>
 
 
-<h1>Taxonomic tree generator</h1> <?php
+<h1>Taxonomic tree generator</h1>
+<h2>Data provided by <a target="_blank" href="http://itis.gov/">ITIS</a></h2><?php
 
 // Kingdom selection
 if(!array_key_exists('kingdom',$_GET) || !array_key_exists($_GET['kingdom'],$kingdoms)){ ?>
