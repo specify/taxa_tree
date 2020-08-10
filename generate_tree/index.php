@@ -186,6 +186,13 @@ function show_node($node_name, $node_data, $line=''){
 	global $line_separator;
 	global $result;
 
+
+	if($line_limit !== FALSE && $lines_count >= $line_limit)
+		save_result();
+
+	$lines_count++;
+
+
 	if(is_string($node_data[0])){//is species
 		$node_common_name = $node_data[0];
 		$node_author = $node_data[1];
@@ -224,11 +231,6 @@ function show_node($node_name, $node_data, $line=''){
 			show_node($child_node_name,$child_node_data, $line.$column_separator);
 
 	}
-	
-	$lines_count++;
-
-	if($line_limit !== FALSE && $lines_count >= $line_limit)
-		save_result();
 
 }
 
