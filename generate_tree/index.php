@@ -18,8 +18,10 @@ if(!array_key_exists('payload', $_POST) || $_POST['payload'] == '')
 		$include_common_names,
 		$include_authors,
 		$fill_in_links,
-		$exclude_extinct,
 		$use_file_splitter,
+		$include_all_taxa,
+		$exclude_extinct,
+		$exclude_non_extinct,
 	],
 	$user_ip,
 ] = json_decode($_POST['payload'], TRUE);
@@ -116,6 +118,7 @@ else {
 
 	$result_tree = [];
 
+
 	foreach($choice_tree as $kingdom => $phylum_data){
 
 		$file_content = json_decode(file_get_contents($compiled_path . $kingdom . $compiled_prefix), TRUE);
@@ -136,10 +139,22 @@ else {
 
 					$result_tree[$kingdom][0][$phylum] = [[], $file_content[$kingdom][0][$phylum][1]];
 
+					foreach($class_data as $class => $order_data){
 
-					foreach($class_data as $order => $order_data)
 						if(is_string($order_data))
-							$result_tree[$kingdom][0][$phylum][0][$order] = $file_content[$kingdom][0][$phylum][0][$order];
+							$result_tree[$kingdom][0][$phylum][0][$class] = $file_content[$kingdom][0][$phylum][0][$class];
+
+						else {
+
+							$result_tree[$kingdom][0][$phylum][0][$class] = [[], $file_content[$kingdom][0][$phylum][0][$class][1]];
+
+							foreach($order_data as $order => $family_data)
+								if(is_string($family_data))
+									$result_tree[$kingdom][0][$phylum][0][$class][0][$order] = $file_content[$kingdom][0][$phylum][0][$class][0][$order];
+
+						}
+
+					}
 
 				}
 
@@ -180,6 +195,7 @@ function show_node($node_name, $node_data, $line=''){
 	global $include_authors;
 	global $fill_in_links;
 	global $exclude_extinct;
+	global $exclude_non_extinct;
 	global $lines_count;
 	global $line_limit;
 	global $column_separator;
@@ -199,7 +215,16 @@ function show_node($node_name, $node_data, $line=''){
 		$node_is_extinct = $node_data[2];
 		$node_id = $node_data[3];
 
-		if($node_is_extinct==="true" && $exclude_extinct)
+		if(
+			(
+				strpos($node_is_extinct,"true")!==FALSE &&
+				$exclude_extinct
+			) ||
+			(
+				strpos($node_is_extinct,"true")!==TRUE &&
+				$exclude_non_extinct
+			)
+		)
 			return;
 
 		$line .= $node_name.$column_separator.$node_id;

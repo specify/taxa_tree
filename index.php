@@ -120,14 +120,25 @@ function checkbox($name,$collapsable=TRUE){
 	<label class="custom-control-label" for="option_3">Add links to <a target="_blank" href="http://catalogueoflife.org/">catalogueoflife.org</a></label>
 </div>
 
-<div class="custom-control custom-checkbox">
-	<input type="checkbox" class="custom-control-input option" id="option_4" checked>
-	<label class="custom-control-label" for="option_4">Exclude extinct taxa</label>
-</div>
-
 <div class="custom-control custom-checkbox mb-4">
 	<input type="checkbox" class="custom-control-input option" id="option_5" checked>
 	<label class="custom-control-label" for="option_5">Split the resulting tree into CSV files of less than 7000 records</label>
+</div>
+
+
+<div class="custom-control custom-radio">
+	<input type="radio" class="custom-control-input option" id="exclusion_policy_3" name="exclusion_policy" value="exclude_extinct_taxa" checked>
+	<label class="custom-control-label" for="exclusion_policy_3">Include all data</label>
+</div>
+
+<div class="custom-control custom-radio">
+	<input type="radio" class="custom-control-input option" id="exclusion_policy_1" name="exclusion_policy" value="exclude_extinct_taxa">
+	<label class="custom-control-label" for="exclusion_policy_1">Exclude extinct taxa</label>
+</div>
+
+<div class="custom-control custom-radio">
+	<input type="radio" class="custom-control-input option" id="exclusion_policy_2" name="exclusion_policy" value="exclude_extinct_taxa">
+	<label class="custom-control-label" for="exclusion_policy_2">Exclude non-extinct taxa</label>
 </div>
 
 <form action="<?=LINK?>generate_tree/" method="POST" class="mt-4" id="form" enctype="multipart/form-data">
