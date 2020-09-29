@@ -25,7 +25,7 @@ if(!file_exists(WORKING_LOCATION))
 
 function head(){
 
-?><!-- Developed by Specify Software (https://www.sustain.specifysoftware.org/) -->
+?><!-- Developed by Specify Software (https://www.specifysoftware.org/) -->
 <!DOCTYPE html>
 <html lang="en">
 	<head>
