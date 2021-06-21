@@ -1,7 +1,5 @@
 <?php
 
-ini_set('memory_limit', '3072M');
-set_time_limit(59);
 ignore_user_abort(true);
 
 require_once('../components/header.php');
@@ -78,7 +76,6 @@ if(!array_key_exists('payload', $_POST) || $_POST['payload'] == '')
 
 if(!$choice_tree)
 	exit('Please select at least one tree node to proceed.');
-
 
 //Make a list of required ranks
 $required_ranks = [];
@@ -220,7 +217,6 @@ if($use_file_splitter)
 	$line_limit = 7000;
 else
 	$line_limit = FALSE;
-
 
 function show_node(
 	$taxon_number,

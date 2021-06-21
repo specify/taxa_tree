@@ -4,7 +4,8 @@
 ### STATS REPORTING ###
 
 # A URL that would collect stats. See https://github.com/specify/taxa_tree_stats
-define('STATS_URL','http://biwebdbtest.nhm.ku.edu/sp7-stats/taxa_stats/collect/');
+if(!defined('STATS_URL'))
+  define('STATS_URL',LINK.'../stats/collect/');
 
 
 
