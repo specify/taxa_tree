@@ -62,7 +62,6 @@ unset($ranks);
 
 # Memory management
 unset($_COOKIE,$_POST,$_GET,$_SERVER,$_FILES);
-ini_set('memory_limit','1024M');
 
 # Read rows
 //tsn name common_name parent_tsn rank kingdom author source

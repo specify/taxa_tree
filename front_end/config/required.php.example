@@ -1,0 +1,12 @@
+<?php
+
+// Toggle DEBUG mode
+define('DEVELOPMENT', FALSE);
+
+// Full URL to the main page as it would be shown to the user
+define('LINK', 'https://taxon.specifysoftware.org/itis/');
+
+// Full path to a working directory (both front-end and the back-end
+// must have write access to this directory)
+define('WORKING_LOCATION','/opt/taxa_tree_itis_working_dir/');
+
