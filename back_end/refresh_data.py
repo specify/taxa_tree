@@ -5,16 +5,12 @@ import time
 from zipfile import ZipFile
 from pathlib import Path
 from os import system, path
+from config import site_link, target_dir, \
+        mysql_host, mysql_user, mysql_password
 
 #
-print('Config')
-site_link = 'http://localhost:80/'
-target_dir = '/Users/mambo/Downloads/gbif_col/'
 source_url = 'http://www.catalogueoflife.org/DCA_Export/zip/archive-complete.zip'
 meta_url = 'https://api.gbif.org/v1/dataset/7ddf754f-d193-4cc9-b351-99906754a03b/document'
-mysql_host = 'localhost'
-mysql_user = 'root'
-mysql_password = 'root'
 
 #
 begin_time = time.time()
