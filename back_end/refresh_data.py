@@ -5,16 +5,13 @@ import time
 from zipfile import ZipFile
 from pathlib import Path
 from os import system, path
+from config import site_link, target_dir, \
+        mysql_host, mysql_user, mysql_password
 
 #
 print('Config')
-site_link = 'http://localhost:80/'
-target_dir = '/Users/mambo/Downloads/sites_data/gbif/'
 source_url = 'http://rs.gbif.org/datasets/backbone/backbone-current.zip'
 meta_url = 'https://api.gbif.org/v1/dataset/d7dddbf4-2cf0-4f39-9b2a-bb099caae36c/document'
-mysql_host = 'localhost'
-mysql_user = 'root'
-mysql_password = 'root'
 
 #
 begin_time = time.time()
@@ -48,7 +45,8 @@ if path.exists(meta_destination):
     new_data_date = get_date(temp_meta_destination)
 
     if old_data_date == new_data_date:
-        raise SystemExit('No need to refresh data')
+        print('No need to refresh data')
+        exit(0)
 
 with open(meta_destination, 'wb') as file:
     file.write(request.content)
@@ -143,6 +141,7 @@ root = {}
 columns = list_flip(['tsn', 'name', 'common_name', 'parent_tsn', 'rank', 'kingdom', 'author', 'source'])
 i = 0
 
+printing('Parsing data')
 while True:
     line = rows_file.readline()
 
@@ -194,7 +193,8 @@ while True:
         parent_tsn,
     ]
 
-    print(str(i)+"\t"+data[0][0])
+    print('.', end='')
+    #print(str(i)+"\t"+data[0][0])
     i = i+1
 
     rows[kingdom_id][tsn] = data
@@ -238,6 +238,7 @@ with open(ranks_data, 'w') as file:
 
 ii = 0
 
+print('Fixing rank order')
 for kingdom_id, kingdom_data in rows.items():
 
     modified = True
@@ -259,7 +260,7 @@ for kingdom_id, kingdom_data in rows.items():
 
             modified = False
 
-            print('Fixed order')
+            print('.', end='')
             ii = ii+1
 
 print('Rows: %d\nOrder fixes: %d' % (i, ii))

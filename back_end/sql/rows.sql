@@ -20,7 +20,7 @@ SELECT `taxonID`                  AS 'tsn',
        `kingdom`                  AS 'kingdom',
        `scientificNameAuthorship` AS 'author',
        IF(
-           LEN(`namePublishedIn`)>64,
+           LENGTH(`namePublishedIn`)>64,
            '',
            `namePublishedIn`
        )                          AS 'source'
