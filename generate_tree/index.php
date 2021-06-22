@@ -1,8 +1,5 @@
 <?php
 
-ini_set('memory_limit', '2048M');
-set_time_limit(59);
-
 require_once('../components/header.php');
 
 $base_target_dir = WORKING_LOCATION . 'results/';

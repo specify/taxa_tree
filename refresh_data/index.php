@@ -1,8 +1,7 @@
 <?php
 
 require_once('../components/header.php');
-#ignore_user_abort(TRUE);
-set_time_limit(300);
+ignore_user_abort(TRUE);
 
 function alert($status,$message){
 
