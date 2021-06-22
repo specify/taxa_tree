@@ -1,6 +1,5 @@
 <?php
 
-ini_set('memory_limit', '3072M');
 ignore_user_abort(TRUE);
 
 require_once('../components/header.php');
