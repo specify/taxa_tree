@@ -10,24 +10,31 @@ print('Config')
 source_url = 'https://www.itis.gov/downloads/itisMySQLBulk.zip'
 
 
-print('Downloading the archive')
 Path(target_dir).mkdir(parents=True, exist_ok=True)
 
+
+print('Downloading meta data')
+etag_name = target_dir + 'etag.txt'
+etag = requests.head(source_url).headers['ETag']
+
+
+if os.path.isfile(etag_name):
+    with open(etag_name, 'r') as file:
+        current_etag = file.read()
+    if etag == current_etag:
+        print('No need to refresh data')
+        exit(0)
+else:
+    with open(etag_name, 'w') as file:
+        file.write(etag)
+
+
+print('Downloading the archive')
 archive_name = target_dir + 'archive.zip'
-
 request = requests.get(source_url)
-
-if os.path.exists(archive_name):
-
-    with open(archive_name, 'rb') as file:
-        old_archive_content = file.read()
-
-    if request.content == old_archive_content:
-        raise SystemExit('No need to refresh data')
 
 with open(archive_name, 'wb') as file:
     file.write(request.content)
-
 
 print('Unzipping the file')
 with ZipFile(archive_name, 'r') as zip_file:
@@ -35,6 +42,7 @@ with ZipFile(archive_name, 'r') as zip_file:
     files = zip_file.namelist()
     directory_name = files[0]
     directory_name = directory_name[0:directory_name.find('/')]
+    directory_name = os.path.join(target_dir, directory_name)
 
     zip_file.extractall(target_dir)
 
@@ -49,11 +57,12 @@ os.system('cd %s && mysql -h%s -u%s -p%s < %s' % (
 )
 
 
-print('Extract the data')
+print('Extracting the data')
 
 queries = ['kingdoms', 'ranks', 'rows']
 
 for query in queries:
+    print(f'Querying {query}')
     with open('sql/' + query + '.sql', 'r') as file:
         result_query = file.read()
 
@@ -68,5 +77,5 @@ for query in queries:
         target_dir + query + '.csv'
     ))
 
-print('Let PHP handle the rest -_-')
+print('Making PHP handle the rest -_-')
 requests.get(url=site_link+'cron/refresh_data.php')
