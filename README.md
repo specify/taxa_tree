@@ -5,6 +5,23 @@ This website generates a taxa tree compatible with Workbench and Wizzard from [S
 The data used by this tool comes from [Catalogue's of Life Dataset on GBIF.ORG](https://www.gbif.org/dataset/7ddf754f-d193-4cc9-b351-99906754a03b).
 
 ## Requirements
+
+### Back-end
+
+Python 3.6+
+
+Dependencies are specified in `requirements.txt`
+
+```zsh
+# Create a virtual environment
+python -m venv venv
+
+# Install dependencies
+venv/bin/pip install -r requirements.txt
+```
+
+### Front-end
+
 1. PHP 7.2+ (older versions may work)
 1. [PHP Zip](https://stackoverflow.com/questions/18774568/installing-php-zip-extension)
 1. Any Webserver
