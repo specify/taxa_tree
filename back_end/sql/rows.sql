@@ -1,26 +1,33 @@
 USE `gbif_col`;
 
-SELECT `taxonID`                  AS 'tsn',
-       IF(
-           `infraspecificEpithet`!='',
+SELECT `NameUsage`.`ID`            AS 'tsn',
+      IF(
+           LENGTH(`infraspecificEpithet`)>0,
            `infraspecificEpithet`,
            IF(
-               `specificEpithet`!='',
-               `specificEpithet`,
+               LENGTH(`infragenericEpithet`)>0,
+               `infragenericEpithet`,
                IF(
-                   `scientificName`!='',
-                   `scientificName`,
-                   `genericName`
+                   LENGTH(`scientificEpithet`)>0,
+                   `scientificEpithet`,
+                   IF(
+                       LENGTH(`scientificName`)>0,
+                       `scientificName`,
+                       IF(
+                           LENGTH(`uninomial`)>0,
+                           `uninomial`,
+                           `genericName`
+                       )
+                   )
                )
            )
        )                          AS 'name',
        `genericName`              AS 'common_name',
-       `parentNameUsageID`        AS 'parent_tsn',
-       `taxonRank`                AS 'rank',
-       `kingdom`                  AS 'kingdom',
-       `scientificNameAuthorship` AS 'author',
-       `references`               AS 'source',
-       `isExtinct`                AS 'is_extinct'
-FROM   `taxa`
-WHERE  `taxonomicStatus` IN ('','accepted name','provisionally accepted name')
-   AND `acceptedNameUsageID`=0;
+       `parentID`                 AS 'parent_tsn',
+       `rank`                     AS 'rank',
+       IFNULL(`authorship`,'')               AS 'author',
+       IFNULL(`Reference`.`citation`,'')     AS 'source'
+FROM   `NameUsage`
+LEFT JOIN `Reference` ON `Reference`.`ID` = `nameReferenceID`
+WHERE  `status` IN ('', 'accepted','provisionally accepted')
+  AND  `rank` IN ('kingdom', 'subkingdom', 'phylum', 'subphylum', 'superclass', 'class', 'subclass', 'infraclass', 'superorder', 'order', 'suborder', 'infraorder', 'superfamily', 'family', 'subfamily', 'tribe', 'subtribe', 'genus', 'subgenus', 'section', 'subsection', 'species', 'subspecies', 'variety', 'subvariety')
