@@ -9,14 +9,8 @@ if(!DEVELOPMENT || SHOW_ERRORS_IN_PRODUCTION){
 	ini_set('display_errors', 1);
 }
 
-if(DEVELOPMENT){
-	define('CSS','.css');
-	define('JS','.js');
-}
-else {
-	define('CSS','.min.css');
-	define('JS','.min.js');
-}
+define('CSS','.css');
+define('JS','.js');
 
 
 if(!file_exists(WORKING_LOCATION))
