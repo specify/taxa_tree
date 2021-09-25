@@ -17,14 +17,34 @@ define('LINE',"\n");
 header("Pragma: no-cache");
 header("Expires: 0");
 header("Content-type: text/csv");
-header("Content-Disposition: attachment; filename=tree.csv");
+header("Content-Disposition: attachment; filename=".$_FILES["file"]["name"]);
 
 
-$handle = fopen($_FILES["file"]["tmp_name"], "r");
-if(!$handle)
-	die;
+$handle = FALSE;
+if(array_key_exists('raw',$_FILES['file'])){
+  $_FILES['file']['raw'] = explode("\n",$_FILES['file']['raw']);
+  function get_line(){
+    static $index = -1;
+    $index++;
+    if(count($_FILES['file']['raw'])<=$index)
+      return FALSE;
+    else
+      return $_FILES['file']['raw'][$index];
+  }
+}
+else {
+  $handle = fopen($_FILES["file"]["tmp_name"], "r");
+  if(!$handle)
+    die;
+  function get_line(){
+    global $handle;
+    return fgets($handle);
+  }
+}
 
-$columns = fgets($handle);
+
+$columns = get_line();
+$columns = str_replace("GUID","LSID",$columns);
 $columns = explode("\t",$columns);
 $columns = array_flip($columns);
 
@@ -76,7 +96,7 @@ echo $header.LINE;
 
 $results_array = explode("\t",$results);
 
-while (($line = fgets($handle)) !== false) {
+while (($line = get_line()) !== false) {
 
 	$line = trim($line);
 
@@ -91,8 +111,6 @@ while (($line = fgets($handle)) !== false) {
 		if(array_key_exists($result,$columns) && array_key_exists($columns[$result],$line))
 			$result_line .= $line[$columns[$result]];
 
-		//elseif($result=='Species LSID' || $result=='Subspecies LSID')
-
 	}
 
 	$result_line .= LINE;
@@ -101,4 +119,5 @@ while (($line = fgets($handle)) !== false) {
 
 }
 
-fclose($handle);
+if($handle)
+  fclose($handle);

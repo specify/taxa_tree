@@ -65,15 +65,16 @@ if(!array_key_exists('payload', $_POST) || $_POST['payload'] == '')
 [
 	$choice_tree,
 	$selected_ranks,
+	$export_type,
 	[
 		$include_common_names,
 		$include_authors,
 		$fill_in_links,
 		$use_file_splitter,
-		$exclude_extinct_taxa,
 	],
 	$user_ip,
 ] = json_decode($_POST['payload'], TRUE);
+$exclude_extinct_taxa = FALSE;
 
 if(!$choice_tree)
 	exit('Please select at least one tree node to proceed.');
@@ -91,9 +92,28 @@ foreach($specify_ranks as $rank){
 }
 
 
-foreach($ranks[$kingdom] as $rank_id => $rank_data)
+$subspecies_rank_id = FALSE;
+foreach($ranks[$kingdom] as $rank_id => $rank_data){
+  if($rank_data[0] == 'Subspecies')
+    $subspecies_rank_id = $rank_id;
 	if(array_key_exists($rank_data[0], $required_ranks))
 		$required_ranks[$rank_data[0]] = $rank_id;
+}
+
+if($export_type == 'wizard'){
+  $include_common_names = TRUE;
+  $include_authors = TRUE;
+  $fill_in_links = TRUE;
+  $use_file_splitter = FALSE;
+  $selected_ranks = array_values($required_ranks);
+  $selected_ranks = array_map('strval', $selected_ranks);
+  function truthy($val){
+    return !!$val;
+  }
+  $selected_ranks = array_filter($selected_ranks,'truthy');
+  if($subspecies_rank_id)
+    $selected_ranks[] = $subspecies_rank_id;
+}
 
 $new_required_ranks = [];
 foreach($required_ranks as $rank_name => $rank_id)
@@ -147,7 +167,7 @@ foreach($ranks[$kingdom] as $rank_id => $rank_data){
 	if($include_common_names)
 		$line .= $column_separator . $rank_name . ' Common Name';
 
-	if($fill_in_links)
+	//if($fill_in_links)
 		$line .= $column_separator . $rank_name . ' Source';
 
 }
@@ -163,11 +183,12 @@ if(STATS_URL!=''){
 		$friendly_selected_ranks[] = $ranks[$kingdom][$rank_id][0];
 
 	$stats_data = [
-		'site'    => 'gbif_col',
+		'site'    => 'col',
 		'tree'    => $choice_tree,
 		'ranks'   => $friendly_selected_ranks,
 		'ip'      => $user_ip,
 		'options' => [
+			'export_type' => $export_type,
 			'include_common_names' => $include_common_names,
 			'include_authors'      => $include_authors,
 			'fill_in_links'        => $fill_in_links,
@@ -227,11 +248,11 @@ function show_node(
 		(//element was not chosen
 			is_array($parent_choice_tree) &&
 			!array_key_exists($node_name, $parent_choice_tree)
-		) ||
-		(//element is extinct and should not be displayed
-			$node[0][4]==='true' &&
-			$exclude_extinct_taxa
-		)
+		)// ||
+		//(//element is extinct and should not be displayed
+		//	$node[0][4]==='true' &&
+		//	$exclude_extinct_taxa
+		//)
 	)
 		return;
 
@@ -258,6 +279,8 @@ function show_node(
 			$line .= $column_separator . $node[0][1];
 
 		if($fill_in_links)
+			$line .= $column_separator . 'https://www.catalogueoflife.org/data/taxon/'. $taxon_number;
+		else
 			$line .= $column_separator . $node[0][3];
 
 		$result .= $line . $line_separator;
@@ -356,17 +379,26 @@ function save_result(){
 
 }
 
-show_node($kingdom, $tree[$tree['root']], $choice_tree);
+show_node($kingdom, $tree[$kingdom], $choice_tree);
 
 
 //output the result
-if(DEBUG)
+$result_file_name = 'CoL ' . date('d.m.Y-H_m_i');
+if($export_type == 'wizard'){
+
+  $_FILES["file"] = array(
+    "name" => $result_file_name.".csv",
+    "raw" => $header_line . $result
+  );
+  require_once('../transform/index.php');
+
+}
+else if(DEBUG)
 	echo $result;
 else {
 
 	save_result();
 
-	$result_file_name = 'GBIF ' . date('d.m.Y-H_m_i');
 
 	if($file_id == 0)
 		exit('There is no data to return');

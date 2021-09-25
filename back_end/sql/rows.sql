@@ -1,4 +1,4 @@
-USE `gbif_col`;
+USE `col`;
 
 SELECT `NameUsage`.`ID`            AS 'tsn',
       IF(

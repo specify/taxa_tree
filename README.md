@@ -1,8 +1,13 @@
-# Taxa Tree Generator (GBIF Catalogue of Life)
+# Taxa Tree Generator (Catalogue of Life)
 This website generates a taxa tree compatible with Workbench and Wizzard from [Specify 6](https://github.com/specify/specify6) and [Specify 7](https://github.com/specify/specify7).
 
 ## Data credit
-The data used by this tool comes from [Catalogue's of Life Dataset on GBIF.ORG](https://www.gbif.org/dataset/7ddf754f-d193-4cc9-b351-99906754a03b).
+The data used by this tool comes from [Catalogue of Life Dataset](https://www.catalogueoflife.org/).
+
+Citation:
+```
+Bánki, O., Roskov, Y., Vandepitte, L., DeWalt, R. E., Remsen, D., Schalk, P., Orrell, T., Keping, M., Miller, J., Aalbu, R., Adlard, R., Adriaenssens, E., Aedo, C., Aescht, E., Akkari, N., Alonso-Zarazaga, M. A., Alvarez, B., Alvarez, F., Anderson, G., et al. (2021). Catalogue of Life Checklist (Version 2021-09-21). Catalogue of Life. https://doi.org/10.48580/d4sv
+```
 
 ## Requirements
 

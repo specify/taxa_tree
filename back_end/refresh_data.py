@@ -6,7 +6,7 @@ import os
 from zipfile import ZipFile
 from pathlib import Path
 from config import target_dir, mysql_host, mysql_user, mysql_password, \
-    mysql_command, docker_dir, mysql_export_command
+    mysql_command, docker_dir
 
 #
 
@@ -18,7 +18,6 @@ meta_url = 'https://api.gbif.org/v1/dataset/7ddf754f-d193-4cc9-b351-99906754a03b
 begin_time = time.time()
 print('Preparation')
 Path(target_dir).mkdir(parents=True, exist_ok=True)
-"""
 
 #
 print('Downloading meta data')
@@ -82,14 +81,13 @@ command = '%s -h%s -u%s -p%s -e "%s"' % (
     mysql_password,
     result_query
 )
-print(command)
 os.system(command)
 
 #
 print('Putting new data into the database')
 print('[NameUsage] (this would take some time)')
 os.system(
-    '%s -h%s -u%s -p%s --database gbif_col -e "LOAD DATA LOCAL INFILE \'%s\' INTO TABLE NameUsage IGNORE 1 LINES;"' % (
+    '%s -h%s -u%s -p%s --database col -e "LOAD DATA LOCAL INFILE \'%s\' INTO TABLE NameUsage IGNORE 1 LINES;"' % (
         mysql_command,
         mysql_host,
         mysql_user,
@@ -100,7 +98,7 @@ os.system(
 
 print('[NameRelation]')
 os.system(
-    '%s -h%s -u%s -p%s --database gbif_col -e "LOAD DATA LOCAL INFILE \'%s\' INTO TABLE NameRelation IGNORE 1 LINES;"' % (
+    '%s -h%s -u%s -p%s --database col -e "LOAD DATA LOCAL INFILE \'%s\' INTO TABLE NameRelation IGNORE 1 LINES;"' % (
         mysql_command,
         mysql_host,
         mysql_user,
@@ -111,7 +109,7 @@ os.system(
 
 print('[Reference] (this would take some time)')
 os.system(
-    '%s -h%s -u%s -p%s --database gbif_col -e "LOAD DATA LOCAL INFILE \'%s\' INTO TABLE Reference IGNORE 1 LINES;"' % (
+    '%s -h%s -u%s -p%s --database col -e "LOAD DATA LOCAL INFILE \'%s\' INTO TABLE Reference IGNORE 1 LINES;"' % (
         mysql_command,
         mysql_host,
         mysql_user,
@@ -128,15 +126,13 @@ with open('sql/rows.sql', 'r') as file:
 result_query = result_query.replace("\n", ' ')
 result_query = result_query.replace("'", '"')
 
-"""
 rows_data = os.path.join(target_dir, 'rows.csv')
-"""
 out_file = os.path.join(docker_dir, 'rows.csv')
 if os.path.exists(rows_data):
     # MariaDB would throw error instead of overwriting if file exists
     os.remove(rows_data)
 os.system(
-    f'{mysql_export_command} '
+    f'{mysql_command} '
     f'-u{mysql_user} '
     f'-p{mysql_password} '
     f'-h{mysql_host} '
@@ -144,7 +140,6 @@ os.system(
 )
 
 #
-"""
 print('Building a list of kingdoms and ranks and a tree of rows (taxon units)')
 rows_destination = os.path.join(target_dir, 'rows/')
 
@@ -282,7 +277,7 @@ for kingdom_id in kingdoms.keys():
         file.write(json.dumps({
             tsn:rows
             for tsn, rows in rows.items()
-            if tsn in kingdom_ranks
+            if tsn in grouped_records
         }))
 
     parent_rank_id = 0
@@ -290,7 +285,10 @@ for kingdom_id in kingdoms.keys():
     for rank_id, rank_name in enumerate(specify_ranks, start=1):
         if rank_id not in kingdom_ranks:
             continue
-        ranks_data[kingdom_id][rank_id] = [rank_name, parent_rank_id]
+        ranks_data[kingdom_id][rank_id] = [
+            rank_name[0].upper() + rank_name[1:],
+            parent_rank_id
+        ]
         parent_rank_id = rank_id
 
 with open(os.path.join(target_dir, 'ranks.json'), 'w') as file:

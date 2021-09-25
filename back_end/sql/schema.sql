@@ -1,6 +1,6 @@
-DROP DATABASE IF EXISTS `gbif_col`;
-CREATE DATABASE `gbif_col`;
-USE `gbif_col`;
+DROP DATABASE IF EXISTS `col`;
+CREATE DATABASE `col`;
+USE `col`;
 
 CREATE TABLE NameUsage (
     `ID` VARCHAR(30) PRIMARY KEY NOT NULL,

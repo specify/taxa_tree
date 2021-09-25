@@ -19,8 +19,12 @@ if(
 
 
 <h1>Taxonomic tree generator</h1>
-<h2>Data provided by <a target="_blank" href="https://www.gbif.org/dataset/7ddf754f-d193-4cc9-b351-99906754a03b">GBIF and CoL</a></h2><?php
+<h2>Data provided by <a target="_blank" href="https://www.catalogueoflife.org/data/download">Catalogue of Life</a></h2>
+<p>
+  Bánki, O., Roskov, Y., Vandepitte, L., DeWalt, R. E., Remsen, D., Schalk, P., Orrell, T., Keping, M., Miller, J., Aalbu, R., Adlard, R., Adriaenssens, E., Aedo, C., Aescht, E., Akkari, N., Alonso-Zarazaga, M. A., Alvarez, B., Alvarez, F., Anderson, G., et al. (2021). Catalogue of Life Checklist (Version 2021-09-21). Catalogue of Life. https://doi.org/10.48580/d4sv
+</p>
 
+<?php
 // Kingdom selection
 if(!array_key_exists('kingdom',$_GET) || !array_key_exists($_GET['kingdom'],$kingdoms)){ ?>
 
@@ -74,7 +78,18 @@ if($kingdom==8)
 else
 	$display_down_to = 'Class'; ?>
 
-<h3>Step 2: Select the nodes you want to have in your database</h3>
+<h3>Step 2: Choose export data type</h3>
+<label>
+  <input type="radio" name="format" value="wizard">
+  Export for SpWizard
+</label>
+<br>
+<label>
+  <input type="radio" name="format" value="workbench" checked>
+  Export for Specify Workbench
+</label>
+
+<h3>Step 3: Select the nodes you want to have in your database</h3>
 
 <ul class="pl-0" id="root"> <?php
 
@@ -155,11 +170,12 @@ else
 
 	}
 
-	show_node($tree[$tree['root']]); ?>
+	show_node($tree[$kingdom]); ?>
 
 </ul>
 
-<h3>Step 3: Select the taxonomic levels that are present in your database</h3><?php
+<section id="ranks">
+<h3>Step 4: Select the taxonomic levels that are present in your database</h3><?php
 
 $new_specify_ranks = [];
 foreach($specify_ranks as $rank){
@@ -169,6 +185,7 @@ foreach($specify_ranks as $rank){
 
 }
 $specify_ranks = $new_specify_ranks;
+
 
 
 foreach($ranks[$kingdom] as $rank_id => $rank){
@@ -189,7 +206,9 @@ foreach($ranks[$kingdom] as $rank_id => $rank){
 
 } ?>
 
-<h3>Step 4: Select which optional data should be present</h3>
+</section>
+<section id="options">
+<h3>Step 5: Select which optional data should be present</h3>
 
 <div class="custom-control custom-checkbox">
 	<input type="checkbox" class="custom-control-input option" id="option_1">
@@ -211,11 +230,13 @@ foreach($ranks[$kingdom] as $rank_id => $rank){
 	<label class="custom-control-label" for="option_4">Split the resulting tree into CSV files of less than 7000 records</label>
 </div>
 
+<!--
 <div class="custom-control custom-checkbox mb-4">
 	<input type="checkbox" class="custom-control-input option" id="option_5" checked>
 	<label class="custom-control-label" for="option_5">Exclude extinct taxa</label>
 </div>
-
+-->
+</section>
 <form action="<?=LINK?>generate_tree/?kingdom=<?=$kingdom?>" method="POST" class="mt-4">
 	<input type="hidden" id="payload_field" name="payload">
 	<button class="btn btn-success btn-lg" id="get_result_button" type="submit">Get results</button>
