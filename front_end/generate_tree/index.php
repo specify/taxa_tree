@@ -40,7 +40,6 @@ if(
 )
 	exit('Can\'t read data from ranks.json');
 
-
 //Get Specify ranks
 if(
 	!file_exists($specify_ranks_location) ||
@@ -174,7 +173,6 @@ foreach($ranks[$kingdom] as $rank_id => $rank_data){
 
 $header_line = $line . $line_separator;
 
-
 //send stats data
 if(STATS_URL!=''){
 
@@ -219,6 +217,14 @@ if($use_file_splitter)
 else
 	$line_limit = FALSE;
 
+
+function compare_ranks($left, $right){
+  global $tree;
+  if ($tree[$left][1] == $tree[$right][1])
+    return 0;
+  return ($tree[$left][1] < $tree[$right][1]) ? -1 : 1;
+}
+
 function show_node(
 	$taxon_number,
 	$node,
@@ -235,11 +241,12 @@ function show_node(
 	global $ranks;
 	global $selected_ranks;
 	global $fill_in_links;
-	global $result;
 	global $line_limit;
 	global $lines_count;
 	global $tree;
 	global $exclude_extinct_taxa;
+	global $header_line;
+	global $result;
 
 	$node_name = $node[0][0];
 	$rank = $node[1];
@@ -262,13 +269,17 @@ function show_node(
 		$choice_tree = "true";
 
 
+  $local_result = '';
 	if(in_array($rank, $selected_ranks)){//the rank of this element is selected
 
 		if($line != '')
 			$line .= $column_separator;
 
-		if($parent_rank !== FALSE && $ranks[$kingdom][$rank][1] != $parent_rank)//if current $rank is not a direct parent of $parent_rank
+		if($parent_rank !== FALSE && $ranks[$kingdom][$rank][1] != $parent_rank){//if current $rank is not a direct parent of $parent_rank
+		//var_dump('<br><br>',$node);
 			$line .= handle_missing_ranks($rank, $parent_rank);
+
+			}
 
 		$line .= $node_name.$column_separator.$taxon_number;
 
@@ -283,17 +294,32 @@ function show_node(
 		else
 			$line .= $column_separator . $node[0][3];
 
-		$result .= $line . $line_separator;
+		$local_result .= $line . $line_separator;
 
 		$lines_count++;
 
 	}
 
-	if($line_limit !== FALSE && $lines_count >= $line_limit)
-		save_result();
+  if($line_limit !== FALSE){
+    $result .= $local_result;
+    if($lines_count >= $line_limit)
+      save_result();
+  }
+  
 
+  usort($node[2], 'compare_ranks');
+  $child_result = '';
 	foreach($node[2] as $children_id)
-		show_node($children_id, $tree[$children_id], $choice_tree, $rank, $line);
+		$child_result .= show_node($children_id, $tree[$children_id], $choice_tree, $rank, $line);
+
+  if($line_limit === FALSE){
+    if($child_result === '')
+      return $local_result;
+    else
+      return $child_result;
+  }
+  else
+    return '';
 
 }
 
@@ -319,7 +345,7 @@ function handle_missing_ranks(
 	if(!$direct_call && in_array($rank, $selected_ranks)){
 
 		if(in_array($rank, $required_ranks))//show required && missing ranks
-			$line .= '(no ' . $ranks[$kingdom][$rank][0] . ')';
+			$line .= 'incertae sedis';
 
 		$count = 2;
 
@@ -339,7 +365,7 @@ function handle_missing_ranks(
 	$parent_rank = $ranks[$kingdom][$rank][1];
 
 	if($parent_rank != $target_rank)
-		$line .= handle_missing_ranks($parent_rank, $target_rank, FALSE);
+		$line = handle_missing_ranks($parent_rank, $target_rank, FALSE) . $line;
 
 	return $line;
 
@@ -379,7 +405,7 @@ function save_result(){
 
 }
 
-show_node($kingdom, $tree[$kingdom], $choice_tree);
+$result .= show_node($kingdom, $tree[$kingdom], $choice_tree);
 
 
 //output the result

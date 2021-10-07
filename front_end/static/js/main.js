@@ -71,7 +71,8 @@ $( function () {
 			const child_name = child.attr('data-name');
 
 			const ul = child.find('> ul');
-			if(child_name.substr(0,4)==='(no ')
+			//if(child_name.substr(0,4)==='(no ')
+		  if(child_name==='incertae sedis')
 				tree = get_children(ul);
 
 			else if(child.hasClass('mixed')){

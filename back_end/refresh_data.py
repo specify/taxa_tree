@@ -8,6 +8,7 @@ from pathlib import Path
 from config import target_dir, mysql_host, mysql_user, mysql_password, \
     mysql_command, docker_dir
 
+
 #
 
 get_source_url = lambda date:\
@@ -66,11 +67,9 @@ print('Unzipping the file')
 with ZipFile(archive_name, 'r') as zip_file:
     files = zip_file.namelist()
     zip_file.extractall(os.path.join(target_dir, 'extracted/'))
-
 print('Creating database schema')
 with open('sql/schema.sql', 'r') as file:
     result_query = file.read()
-
 result_query = result_query.replace("\n", ' ')
 result_query = result_query.replace("`", '\\' + '`')
 
@@ -81,12 +80,12 @@ command = '%s -h%s -u%s -p%s -e "%s"' % (
     mysql_password,
     result_query
 )
-os.system(command)
+assert os.system(command) == 0
 
 #
 print('Putting new data into the database')
 print('[NameUsage] (this would take some time)')
-os.system(
+assert os.system(
     '%s -h%s -u%s -p%s --database col -e "LOAD DATA LOCAL INFILE \'%s\' INTO TABLE NameUsage IGNORE 1 LINES;"' % (
         mysql_command,
         mysql_host,
@@ -94,21 +93,10 @@ os.system(
         mysql_password,
         os.path.join(docker_dir, 'extracted/NameUsage.tsv')
     )
-)
-
-print('[NameRelation]')
-os.system(
-    '%s -h%s -u%s -p%s --database col -e "LOAD DATA LOCAL INFILE \'%s\' INTO TABLE NameRelation IGNORE 1 LINES;"' % (
-        mysql_command,
-        mysql_host,
-        mysql_user,
-        mysql_password,
-        os.path.join(docker_dir, 'extracted/NameRelation.tsv')
-    )
-)
+) == 0
 
 print('[Reference] (this would take some time)')
-os.system(
+assert os.system(
     '%s -h%s -u%s -p%s --database col -e "LOAD DATA LOCAL INFILE \'%s\' INTO TABLE Reference IGNORE 1 LINES;"' % (
         mysql_command,
         mysql_host,
@@ -116,7 +104,7 @@ os.system(
         mysql_password,
         os.path.join(docker_dir, 'extracted/Reference.tsv')
     )
-)
+) == 0
 
 #
 print('Extracting data (this would take some time)')
@@ -131,13 +119,13 @@ out_file = os.path.join(docker_dir, 'rows.csv')
 if os.path.exists(rows_data):
     # MariaDB would throw error instead of overwriting if file exists
     os.remove(rows_data)
-os.system(
+assert os.system(
     f'{mysql_command} '
     f'-u{mysql_user} '
     f'-p{mysql_password} '
     f'-h{mysql_host} '
     f'-e \'{result_query} INTO OUTFILE "{out_file}" FIELDS TERMINATED BY "\t"\''
-)
+) == 0
 
 #
 print('Building a list of kingdoms and ranks and a tree of rows (taxon units)')

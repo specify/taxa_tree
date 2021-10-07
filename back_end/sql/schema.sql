@@ -67,13 +67,3 @@ CREATE TABLE Reference (
     `link` TEXT,
     `remarks` TEXT
 );
-
-
-CREATE TABLE NameRelation (
-    `nameID` TEXT,
-    `relatedNameID` TEXT,
-    `sourceID` TEXT,
-    `type` TEXT,
-    `referenceID` TEXT,
-    `remarks` TEXT
-);

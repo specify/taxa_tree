@@ -157,7 +157,8 @@ else
 
 				if(count($indirect_children)!=0){
 					$direct_children_rank = $ranks[$kingdom][$rank_id][2];
-					show_node([['(no ' . $ranks[$kingdom][$direct_children_rank][0] . ')'], $direct_children_rank, $indirect_children]);
+					//show_node([['(no ' . $ranks[$kingdom][$direct_children_rank][0] . ')'], $direct_children_rank, $indirect_children]);
+					show_node([['incertae sedis'], $direct_children_rank, $indirect_children]);
 				}
 
 				foreach($direct_children as $children_id)
