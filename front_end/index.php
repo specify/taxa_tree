@@ -19,9 +19,12 @@ if(
 
 
 <h1>Taxonomic tree generator</h1>
-<h2>Data provided by <a target="_blank" href="https://www.catalogueoflife.org/data/download">Catalogue of Life</a></h2>
+<h2>Data provided by <a target="_blank" href="https://www.marinespecies.org/">
+  WoRMS</a></h2>
 <p>
-  Bánki, O., Roskov, Y., Vandepitte, L., DeWalt, R. E., Remsen, D., Schalk, P., Orrell, T., Keping, M., Miller, J., Aalbu, R., Adlard, R., Adriaenssens, E., Aedo, C., Aescht, E., Akkari, N., Alonso-Zarazaga, M. A., Alvarez, B., Alvarez, F., Anderson, G., et al. (2021). Catalogue of Life Checklist (Version 2021-09-21). Catalogue of Life. https://doi.org/10.48580/d4sv
+  WoRMS Editorial Board (2021). World Register of Marine Species. Available from
+  https://www.marinespecies.org at VLIZ. Accessed [date].
+  http://doi.org/10.14284/170
 </p>
 
 <?php
@@ -219,11 +222,6 @@ foreach($ranks[$kingdom] as $rank_id => $rank){
 <div class="custom-control custom-checkbox">
 	<input type="checkbox" class="custom-control-input option" id="option_2">
 	<label class="custom-control-label" for="option_2">Include Authors</label>
-</div>
-
-<div class="custom-control custom-checkbox">
-	<input type="checkbox" class="custom-control-input option" id="option_3">
-	<label class="custom-control-label" for="option_3">Include links to <a href="http://catalogueoflife.org/">catalogueoflife.org</a></label>
 </div>
 
 <div class="custom-control custom-checkbox">

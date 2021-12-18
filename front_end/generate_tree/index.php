@@ -68,12 +68,12 @@ if(!array_key_exists('payload', $_POST) || $_POST['payload'] == '')
 	[
 		$include_common_names,
 		$include_authors,
-		$fill_in_links,
 		$use_file_splitter,
 	],
 	$user_ip,
 ] = json_decode($_POST['payload'], TRUE);
 $exclude_extinct_taxa = FALSE;
+$fill_in_links = FALSE;
 
 if(!$choice_tree)
 	exit('Please select at least one tree node to proceed.');
@@ -125,11 +125,10 @@ $required_ranks = $new_required_ranks;
 //Configuration
 define('DEBUG', FALSE);
 
-if(DEBUG){
-	$column_separator = ",";
-	$line_separator = "<br>";
-}
-else {
+$column_separator = "\t";
+$line_separator = "<br>";
+
+if(!DEBUG){
 	$column_separator = "\t";
 	$line_separator = "\n";
 
@@ -165,6 +164,8 @@ foreach($ranks[$kingdom] as $rank_id => $rank_data){
 
 	if($include_common_names)
 		$line .= $column_separator . $rank_name . ' Common Name';
+
+	$line .= $column_separator . $rank_name . ' Remarks';
 
 	//if($fill_in_links)
 		$line .= $column_separator . $rank_name . ' Source';
@@ -284,10 +285,12 @@ function show_node(
 		$line .= $node_name.$column_separator.$taxon_number;
 
 		if($include_authors)
-			$line .= $column_separator . $node[0][2];
+			$line .= $column_separator . substr($node[0][2], 0, 128);
 
 		if($include_common_names)
-			$line .= $column_separator . $node[0][1];
+			$line .= $column_separator . substr($node[0][1], 0, 128);
+
+		$line .= $column_separator . 'WoRMS Editorial Board (2021). World Register of Marine Species. Available from https://www.marinespecies.org at VLIZ. Accessed 10-22-2021. http://doi.org/10.14284/170';
 
 		if($fill_in_links)
 			$line .= $column_separator . 'https://www.catalogueoflife.org/data/taxon/'. $taxon_number;
@@ -347,7 +350,7 @@ function handle_missing_ranks(
 		if(in_array($rank, $required_ranks))//show required && missing ranks
 			$line .= 'incertae sedis';
 
-		$count = 2;
+    $count = 2;
 
 		if($include_authors)
 			$count++;
@@ -355,7 +358,10 @@ function handle_missing_ranks(
 		if($include_common_names)
 			$count++;
 
-		if($fill_in_links)
+    // Remarks
+    $count++;
+
+		//if($fill_in_links)
 			$count++;
 
 		$line .= str_repeat($column_separator, $count);
@@ -409,7 +415,7 @@ $result .= show_node($kingdom, $tree[$kingdom], $choice_tree);
 
 
 //output the result
-$result_file_name = 'CoL ' . date('d.m.Y-H_m_i');
+$result_file_name = 'WoRMS ' . date('d.m.Y-H_m_i');
 if($export_type == 'wizard'){
 
   $_FILES["file"] = array(
@@ -420,7 +426,7 @@ if($export_type == 'wizard'){
 
 }
 else if(DEBUG)
-	echo $result;
+	echo '<pre>'.$header_line. $result . '</pre>';
 else {
 
 	save_result();

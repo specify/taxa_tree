@@ -1,19 +1,11 @@
-import requests
-import xml.etree.ElementTree as xmlParser
+import hashlib
 import json
 import time
 import os
 from zipfile import ZipFile
 from pathlib import Path
 from config import target_dir, mysql_host, mysql_user, mysql_password, \
-    mysql_command, docker_dir
-
-
-#
-
-get_source_url = lambda date:\
-    f'https://download.catalogueoflife.org/col/monthly/{date}_coldp.zip'
-meta_url = 'https://api.gbif.org/v1/dataset/7ddf754f-d193-4cc9-b351-99906754a03b/document'
+    mysql_command, mysql_database, docker_dir
 
 #
 begin_time = time.time()
@@ -21,46 +13,29 @@ print('Preparation')
 Path(target_dir).mkdir(parents=True, exist_ok=True)
 
 #
-print('Downloading meta data')
+print('Checking if archive changed')
 
-date_destination = os.path.join(target_dir, 'date.txt')
-meta_destination = os.path.join(target_dir, 'meta.xml')
-temp_meta_destination = os.path.join(target_dir, 'meta_temp.xml')
+hash_destination = os.path.join(target_dir, 'hash.xml')
 
-request = requests.get(meta_url)
-
-
-def get_date(target_destination):
-    tree = xmlParser.parse(target_destination)
-    root_element = tree.getroot()
-    description = root_element.find('dataset')
-    return description.find('pubDate').text.strip()
-
-
-with open(temp_meta_destination, 'wb') as file:
-    file.write(request.content)
-new_data_date = get_date(temp_meta_destination)
-
-if os.path.exists(meta_destination):
-    old_data_date = get_date(meta_destination)
-    if old_data_date == new_data_date:
-        raise SystemExit('No need to refresh data')
-
-with open(meta_destination, 'wb') as file:
-    file.write(request.content)
-
-with open(date_destination, 'w') as file:
-    file.write(get_date(meta_destination))
-
-print('Downloading the archive')
-
+old_hash = ''
+if os.path.exists(hash_destination):
+    with open(hash_destination) as file:
+        old_hash = file.read()
+        
 archive_name = os.path.join(target_dir, 'archive.zip')
 
-request = requests.get(get_source_url(new_data_date))
+hasher = hashlib.md5()
+with open(archive_name, 'rb') as file:
+    buf = file.read()
+    hasher.update(buf)
+new_hash = hasher.hexdigest()
 
-with open(archive_name, 'wb') as file:
-    file.write(request.content)
+if new_hash == old_hash:
+    print('No need to update data')
+    exit(0)
 
+with open(hash_destination, 'w') as file:
+    file.write(new_hash)
 
 #
 print('Unzipping the file')
@@ -84,25 +59,15 @@ assert os.system(command) == 0
 
 #
 print('Putting new data into the database')
-print('[NameUsage] (this would take some time)')
+print('[taxon] (this would take some time)')
 assert os.system(
-    '%s -h%s -u%s -p%s --database col -e "LOAD DATA LOCAL INFILE \'%s\' INTO TABLE NameUsage IGNORE 1 LINES;"' % (
+    '%s -h%s -u%s -p%s --database %s -e "LOAD DATA LOCAL INFILE \'%s\' INTO TABLE taxon IGNORE 1 LINES;"' % (
         mysql_command,
         mysql_host,
         mysql_user,
         mysql_password,
-        os.path.join(docker_dir, 'extracted/NameUsage.tsv')
-    )
-) == 0
-
-print('[Reference] (this would take some time)')
-assert os.system(
-    '%s -h%s -u%s -p%s --database col -e "LOAD DATA LOCAL INFILE \'%s\' INTO TABLE Reference IGNORE 1 LINES;"' % (
-        mysql_command,
-        mysql_host,
-        mysql_user,
-        mysql_password,
-        os.path.join(docker_dir, 'extracted/Reference.tsv')
+        mysql_database,
+        os.path.join(docker_dir, 'extracted/taxon.txt')
     )
 ) == 0
 
@@ -143,20 +108,34 @@ def list_flip(original_list):
     return dictionary
 
 
-rows = {}
-kingdoms = {}
+kingdoms = {
+    'urn:lsid:marinespecies.org:taxname:2': 'Animalia'
+}
 columns = list_flip([
     'tsn', 'name', 'common_name', 'parent_tsn', 'rank', 'author', 'source'
 ])
 line_number = 0
-specify_ranks = [rank.lower() for rank in [
+specify_ranks = [
     'Domain', 'Infrakingdom', 'Superphylum', 'Infradivision', 'Cohort',
     'Kingdom', 'Subkingdom', 'Division', 'Subdivision', 'Phylum',
     'Subphylum', 'Superclass', 'Class', 'Subclass', 'Infraclass', 'Superorder',
     'Order', 'Suborder', 'Infraorder', 'Superfamily', 'Family', 'Subfamily',
     'Tribe', 'Subtribe', 'Genus', 'Subgenus', 'Section', 'Subsection',
     'Species', 'Subspecies', 'Variety', 'Subvariety', 'Forma', 'Subforma'
-]]
+]
+rows = {
+    'urn:lsid:marinespecies.org:taxname:2': [
+        [
+            'Animalia',
+            'Animalia',
+            '',
+            ''
+        ],
+        specify_ranks.index('Kingdom') + 1,
+        [],
+        None
+    ]
+}
 
 with open(rows_data, 'r') as rows_file:
     line = rows_file.readline()
@@ -211,8 +190,7 @@ with open(os.path.join(target_dir, 'kingdoms.json'), 'w') as file:
     file.write(json.dumps(kingdoms))
 
 #
-print('Fixing orders')
-orders_fixed = 0
+print('Finding parent nodes')
 
 modified = True
 while modified:
@@ -233,17 +211,16 @@ while modified:
         modified = True
 
         print('.')
-        orders_fixed = orders_fixed + 1
 
 print('Filtering out nodes without parents')
-kingdom_rank_id = specify_ranks.index('kingdom') + 1
+kingdom_rank_id = specify_ranks.index('Kingdom') + 1
 rows = {
     tsn:row
     for tsn,row in rows.items()
     if len(row) < 4 or row[1]==kingdom_rank_id
 }
 
-print('Rows: %d\nOrder fixes: %d' % (line_number, orders_fixed))
+print('Rows: %d\n' % line_number)
 
 #
 print('Saving data')

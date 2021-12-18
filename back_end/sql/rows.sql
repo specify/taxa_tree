@@ -1,33 +1,60 @@
-USE `col`;
+USE `worms`;
 
-SELECT `NameUsage`.`ID`            AS 'tsn',
+SELECT `child`.`taxonID`                     AS 'tsn',
       IF(
            LENGTH(`infraspecificEpithet`)>0,
            `infraspecificEpithet`,
            IF(
-               LENGTH(`infragenericEpithet`)>0,
-               `infragenericEpithet`,
+               LENGTH(`specificEpithet`)>0,
+               `specificEpithet`,
                IF(
-                   LENGTH(`scientificEpithet`)>0,
-                   `scientificEpithet`,
+                   LENGTH(`acceptedNameUsage`)>0,
+                   `acceptedNameUsage`,
                    IF(
                        LENGTH(`scientificName`)>0,
                        `scientificName`,
                        IF(
-                           LENGTH(`uninomial`)>0,
-                           `uninomial`,
-                           `genericName`
+                           LENGTH(`genus`)>0,
+                           `genus`,
+                           IF(
+                               LENGTH(`family`)>0,
+                               `family`,
+                               IF(
+                                   LENGTH(`order`)>0,
+                                   `order`,
+                                   IF(
+                                       LENGTH(`class`)>0,
+                                       `class`,
+                                       `phylum`
+                                   )
+                               )
+                           )
                        )
                    )
                )
            )
-       )                          AS 'name',
-       `genericName`              AS 'common_name',
-       `parentID`                 AS 'parent_tsn',
-       `rank`                     AS 'rank',
-       IFNULL(`authorship`,'')               AS 'author',
-       IFNULL(`Reference`.`citation`,'')     AS 'source'
-FROM   `NameUsage`
-LEFT JOIN `Reference` ON `Reference`.`ID` = `nameReferenceID`
-WHERE  `status` IN ('', 'accepted','provisionally accepted')
-  AND  `rank` IN ('kingdom', 'subkingdom', 'phylum', 'subphylum', 'superclass', 'class', 'subclass', 'infraclass', 'superorder', 'order', 'suborder', 'infraorder', 'superfamily', 'family', 'subfamily', 'tribe', 'subtribe', 'genus', 'subgenus', 'section', 'subsection', 'species', 'subspecies', 'variety', 'subvariety')
+       )                                     AS 'name',
+       `parentNameUsage`                     AS 'common_name',
+       `parentNameUsageID`                   AS 'parent_tsn',
+       `taxonRank`                           AS 'rank',
+       IFNULL(`scientificNameAuthorship`,'') AS 'author',
+       IFNULL(`references`,'')     AS 'source'
+FROM   `taxon` `child`
+WHERE `taxonomicStatus` = 'accepted'
+  AND (
+      `taxonRank` = 'Phylum'
+      OR (
+        SELECT COUNT(*)
+        FROM taxon `parent`
+        WHERE `parent`.taxonID = `child`.parentNameUsageID
+          AND taxonomicStatus = 'accepted'
+      ) = 1
+  )
+  AND `taxonRank` IN (
+    'Domain', 'Infrakingdom', 'Superphylum', 'Infradivision', 'Cohort',
+    'Kingdom', 'Subkingdom', 'Division', 'Subdivision', 'Phylum',
+    'Subphylum', 'Superclass', 'Class', 'Subclass', 'Infraclass', 'Superorder',
+    'Order', 'Suborder', 'Infraorder', 'Superfamily', 'Family', 'Subfamily',
+    'Tribe', 'Subtribe', 'Genus', 'Subgenus', 'Section', 'Subsection',
+    'Species', 'Subspecies', 'Variety', 'Subvariety', 'Forma', 'Subforma'
+  )
