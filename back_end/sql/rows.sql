@@ -50,11 +50,3 @@ WHERE `taxonomicStatus` = 'accepted'
           AND taxonomicStatus = 'accepted'
       ) = 1
   )
-  AND `taxonRank` IN (
-    'Domain', 'Infrakingdom', 'Superphylum', 'Infradivision', 'Cohort',
-    'Kingdom', 'Subkingdom', 'Division', 'Subdivision', 'Phylum',
-    'Subphylum', 'Superclass', 'Class', 'Subclass', 'Infraclass', 'Superorder',
-    'Order', 'Suborder', 'Infraorder', 'Superfamily', 'Family', 'Subfamily',
-    'Tribe', 'Subtribe', 'Genus', 'Subgenus', 'Section', 'Subsection',
-    'Species', 'Subspecies', 'Variety', 'Subvariety', 'Forma', 'Subforma'
-  )

@@ -116,10 +116,10 @@ columns = list_flip([
 ])
 line_number = 0
 specify_ranks = [
-    'Domain', 'Infrakingdom', 'Superphylum', 'Infradivision', 'Cohort',
-    'Kingdom', 'Subkingdom', 'Division', 'Subdivision', 'Phylum',
+    'Domain', 'Infrakingdom', 'Infradivision', 'Cohort',
+    'Kingdom', 'Subkingdom', 'Division', 'Subdivision', 'Superphylum', 'Phylum',
     'Subphylum', 'Superclass', 'Class', 'Subclass', 'Infraclass', 'Superorder',
-    'Order', 'Suborder', 'Infraorder', 'Superfamily', 'Family', 'Subfamily',
+    'Order', 'Suborder', 'Infraorder', 'Parvorder', 'Superfamily', 'Family', 'Subfamily',
     'Tribe', 'Subtribe', 'Genus', 'Subgenus', 'Section', 'Subsection',
     'Species', 'Subspecies', 'Variety', 'Subvariety', 'Forma', 'Subforma'
 ]
