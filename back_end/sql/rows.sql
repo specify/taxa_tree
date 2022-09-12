@@ -29,5 +29,5 @@ SELECT `NameUsage`.`ID`            AS 'tsn',
        IFNULL(`Reference`.`citation`,'')     AS 'source'
 FROM   `NameUsage`
 LEFT JOIN `Reference` ON `Reference`.`ID` = `nameReferenceID`
-WHERE  `status` IN ('', 'accepted','provisionally accepted')
+WHERE  `status` IN ('', 'accepted')
   AND  `rank` IN ('kingdom', 'subkingdom', 'phylum', 'subphylum', 'superclass', 'class', 'subclass', 'infraclass', 'superorder', 'order', 'suborder', 'infraorder', 'superfamily', 'family', 'subfamily', 'tribe', 'subtribe', 'genus', 'subgenus', 'section', 'subsection', 'species', 'subspecies', 'variety', 'subvariety')
