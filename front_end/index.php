@@ -73,10 +73,7 @@ if(!file_exists($rows_location) ||
 
 //Show the tree and other options
 
-if($kingdom==8)
-	$display_down_to = 'Family';
-else
-	$display_down_to = 'Class'; ?>
+$display_down_to = 'Order'; ?>
 
 <h3>Step 2: Choose export data type</h3>
 <label>
