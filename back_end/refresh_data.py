@@ -115,13 +115,55 @@ columns = list_flip([
     'tsn', 'name', 'common_name', 'parent_tsn', 'rank', 'author', 'source'
 ])
 line_number = 0
+# It's super important that you provide all ranks that are used in the file in this list
+# Extra ranks are fine (as long as they are in order)
+# If some rank is not provided in here, it, along with it's subtree will be thrown out (which is a really bad design)
 specify_ranks = [
-    'Domain', 'Infrakingdom', 'Infradivision', 'Cohort',
-    'Kingdom', 'Subkingdom', 'Division', 'Subdivision', 'Superphylum', 'Phylum',
-    'Subphylum', 'Superclass', 'Class', 'Subclass', 'Infraclass', 'Superorder',
-    'Order', 'Suborder', 'Infraorder', 'Parvorder', 'Superfamily', 'Family', 'Subfamily',
-    'Tribe', 'Subtribe', 'Genus', 'Subgenus', 'Section', 'Subsection',
-    'Species', 'Subspecies', 'Variety', 'Subvariety', 'Forma', 'Subforma'
+    "Domain",
+    "Kingdom",
+    "Subkingdom",
+    "Infrakingdom",
+    "Superphylum",
+    "Superdivision",
+    "Phylum",
+    "Division",
+    "Subphylum",
+    "Subdivision",
+    "Infraphylum",
+    "Infradivision",
+    "Parvphylum",
+    "Gigaclass",
+    "Megaclass",
+    "Superclass",
+    "Class",
+    "Subclass",
+    "Infraclass",
+    "Subterclass",
+    "Superorder",
+    "Cohort",
+    "Order",
+    "Suborder",
+    "Infraorder",
+    "Parvorder",
+    "Section",
+    "Subsection",
+    "Superfamily",
+    "Epifamily",
+    "Family",
+    "Subfamily",
+    "Supertribe",
+    "Tribe",
+    "Subtribe",
+    "Genus",
+    "Subgenus",
+    "Species",
+    "Subspecies",
+    "Natio",
+    "Variety",
+    "Subvariety",
+    "Forma",
+    "Subforma",
+    "Mutatio"
 ]
 rows = {
     'urn:lsid:marinespecies.org:taxname:2': [
