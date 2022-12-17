@@ -122,7 +122,7 @@ foreach($required_ranks as $rank_name => $rank_id)
 $required_ranks = $new_required_ranks;
 
 
-//Configuration
+// Configuration
 define('DEBUG', FALSE);
 
 $column_separator = "\t";
@@ -270,17 +270,14 @@ function show_node(
 		$choice_tree = "true";
 
 
-  $local_result = '';
-	if(in_array($rank, $selected_ranks)){//the rank of this element is selected
+    $local_result = '';
+	if(in_array($rank, $selected_ranks)){  // The rank of this element is selected
 
 		if($line != '')
 			$line .= $column_separator;
 
-		if($parent_rank !== FALSE && $ranks[$kingdom][$rank][1] != $parent_rank){//if current $rank is not a direct parent of $parent_rank
-		//var_dump('<br><br>',$node);
+		if($parent_rank !== FALSE && $ranks[$kingdom][$rank][1] != $parent_rank) //  If current $rank is not a direct parent of $parent_rank
 			$line .= handle_missing_ranks($rank, $parent_rank);
-
-			}
 
 		$line .= $node_name.$column_separator.$taxon_number;
 
@@ -302,11 +299,14 @@ function show_node(
 		$lines_count++;
 
 	}
+	else
+		// Handle cases when one of the required ranks is not selected/missing in the data
+		$line .= handle_missing_ranks($rank, $parent_rank);
 
   if($line_limit !== FALSE){
-    $result .= $local_result;
-    if($lines_count >= $line_limit)
-      save_result();
+	$result .= $local_result;
+	if($lines_count >= $line_limit)
+	  save_result();
   }
   
 
@@ -350,7 +350,8 @@ function handle_missing_ranks(
 		if(in_array($rank, $required_ranks))//show required && missing ranks
 			$line .= 'incertae sedis';
 
-    $count = 2;
+		// Name and GUID
+		$count = 2;
 
 		if($include_authors)
 			$count++;
@@ -358,8 +359,8 @@ function handle_missing_ranks(
 		if($include_common_names)
 			$count++;
 
-    // Remarks
-    $count++;
+		// Remarks
+		$count++;
 
 		//if($fill_in_links)
 			$count++;
