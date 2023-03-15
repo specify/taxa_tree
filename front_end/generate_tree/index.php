@@ -316,10 +316,7 @@ function show_node(
 		$child_result .= show_node($children_id, $tree[$children_id], $choice_tree, $rank, $line);
 
   if($line_limit === FALSE){
-    if($child_result === '')
-      return $local_result;
-    else
-      return $child_result;
+    return $local_result.$child_result;
   }
   else
     return '';
