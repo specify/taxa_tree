@@ -248,11 +248,16 @@ while modified:
         if parent_tsn not in rows:
             continue
 
+        if row[1] < rows[parent_tsn][1]:
+            print("Skipping node with wrong rank order: " + row[0][3])
+            continue
+
         del row[3]
         rows[parent_tsn][2].append(tsn)
+
         modified = True
 
-        print('.')
+#         print('.')
 
 print('Filtering out nodes without parents')
 kingdom_rank_id = specify_ranks.index('Kingdom') + 1
