@@ -271,10 +271,10 @@ function show_node(
 
 
     $local_result = '';
-	if(in_array($rank, $selected_ranks)){  // The rank of this element is selected
+    if($line != '')
+        $line .= $column_separator;
 
-		if($line != '')
-			$line .= $column_separator;
+	if(in_array($rank, $selected_ranks)){  // The rank of this element is selected
 
 		if($parent_rank !== FALSE && $ranks[$kingdom][$rank][1] != $parent_rank) //  If current $rank is not a direct parent of $parent_rank
 			$line .= handle_missing_ranks($rank, $parent_rank);
