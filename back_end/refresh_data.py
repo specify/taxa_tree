@@ -235,6 +235,7 @@ with open(os.path.join(target_dir, 'kingdoms.json'), 'w') as file:
 print('Finding parent nodes')
 
 modified = True
+wrong_order_nodes = []
 while modified:
     modified = False
 
@@ -249,7 +250,9 @@ while modified:
             continue
 
         if row[1] < rows[parent_tsn][1]:
-            print("Skipping node with wrong rank order: " + row[0][3])
+            if row not in wrong_order_nodes:
+                print("Skipping node with wrong rank order. Child:", row, "Parent: ", rows[parent_tsn])
+                wrong_order_nodes.append(row)
             continue
 
         del row[3]
