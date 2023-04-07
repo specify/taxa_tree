@@ -6,7 +6,7 @@ import os
 from zipfile import ZipFile
 from pathlib import Path
 
-from back_end.expected_columns import expected_columns
+from expected_columns import expected_columns
 from config import target_dir, mysql_host, mysql_user, mysql_password, \
     mysql_command, docker_dir
 
