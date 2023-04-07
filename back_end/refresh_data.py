@@ -5,12 +5,12 @@ import time
 from zipfile import ZipFile
 from pathlib import Path
 from os import system, path
-from config import site_link, target_dir, \
+from config import target_dir, \
         mysql_host, mysql_user, mysql_password
 
 #
 print('Config')
-source_url = 'http://rs.gbif.org/datasets/backbone/backbone-current.zip'
+source_url = 'https://hosted-datasets.gbif.org/datasets/backbone/current/backbone.zip'
 meta_url = 'https://api.gbif.org/v1/dataset/d7dddbf4-2cf0-4f39-9b2a-bb099caae36c/document'
 
 #
@@ -141,7 +141,7 @@ root = {}
 columns = list_flip(['tsn', 'name', 'common_name', 'parent_tsn', 'rank', 'kingdom', 'author', 'source'])
 i = 0
 
-printing('Parsing data')
+print('Parsing data')
 while True:
     line = rows_file.readline()
 
