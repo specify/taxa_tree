@@ -5,6 +5,8 @@ import time
 import os
 from zipfile import ZipFile
 from pathlib import Path
+
+from expected_columns import expected_columns
 from config import target_dir, mysql_host, mysql_user, mysql_password, \
     mysql_command, docker_dir
 
@@ -67,6 +69,7 @@ print('Unzipping the file')
 with ZipFile(archive_name, 'r') as zip_file:
     files = zip_file.namelist()
     zip_file.extractall(os.path.join(target_dir, 'extracted/'))
+
 print('Creating database schema')
 with open('sql/schema.sql', 'r') as file:
     result_query = file.read()
@@ -85,6 +88,23 @@ assert os.system(command) == 0
 #
 print('Putting new data into the database')
 print('[NameUsage] (this would take some time)')
+
+with open(os.path.join(target_dir, 'extracted/NameUsage.tsv'), "r") as file:
+    first_line = file.readline().strip()
+    if first_line != '\t'.join(expected_columns['name_usage']):
+        raise SystemExit(
+            'Columns in NameUsage.tsv don\'t match expected columns\n' +
+            'This likely happened because CoL updated their data format'
+        )
+
+with open(os.path.join(target_dir, 'extracted/Reference.tsv'), "r") as file:
+    first_line = file.readline().strip()
+    if first_line != '\t'.join(expected_columns['reference']):
+        raise SystemExit(
+            'Columns in NameUsage.tsv don\'t match expected columns\n' +
+            'This likely happened because CoL updated their data format'
+        )
+
 assert os.system(
     '%s -h%s -u%s -p%s --database col -e "LOAD DATA LOCAL INFILE \'%s\' INTO TABLE NameUsage IGNORE 1 LINES;"' % (
         mysql_command,

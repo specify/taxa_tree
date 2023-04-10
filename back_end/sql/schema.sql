@@ -4,6 +4,8 @@ USE `col`;
 
 CREATE TABLE NameUsage (
     `ID` VARCHAR(30) PRIMARY KEY NOT NULL,
+    `alternativeID` TEXT,
+    `nameAlternativeID` TEXT,
     `sourceID` TEXT,
     `parentID` TEXT,
     `basionymID` TEXT,
@@ -56,6 +58,7 @@ CREATE TABLE NameUsage (
 
 CREATE TABLE Reference (
     `ID` VARCHAR(30) PRIMARY KEY NOT NULL,
+    `alternativeID` TEXT,
     `sourceID` TEXT,
     `citation` TEXT,
     `author` TEXT,
