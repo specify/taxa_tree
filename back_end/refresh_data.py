@@ -126,6 +126,7 @@ assert os.system(
     )
 ) == 0
 
+
 #
 print('Extracting data (this would take some time)')
 with open('sql/rows.sql', 'r') as file:
@@ -170,12 +171,20 @@ columns = list_flip([
 ])
 line_number = 0
 specify_ranks = [rank.lower() for rank in [
-    'Domain', 'Infrakingdom', 'Superphylum', 'Infradivision', 'Cohort',
-    'Kingdom', 'Subkingdom', 'Division', 'Subdivision', 'Phylum',
-    'Subphylum', 'Superclass', 'Class', 'Subclass', 'Infraclass', 'Superorder',
-    'Order', 'Suborder', 'Infraorder', 'Superfamily', 'Family', 'Subfamily',
-    'Tribe', 'Subtribe', 'Genus', 'Subgenus', 'Section', 'Subsection',
-    'Species', 'Subspecies', 'Variety', 'Subvariety', 'Forma', 'Subforma'
+    'Domain', 'Realm',
+    'Kingdom', 'Subkingdom', 'Infrakingdom',
+    'Superphylum', 'Phylum', 'Subphylum', 'Infraphylum', 'Parvphylum',
+    'Superdivision', 'Division', 'Subdivision', 'Infradivision', 'Parvdivision',
+    'Gigaclass', 'Megaclass', 'Superclass', 'Class', 'Subclass', 'Infraclass', 'Subterclass',
+    'Superorder', 'Order', 'Suborder', 'Infraorder', 'Parvorder', 'Nanorder',
+    'Section', 'Subsection',
+    'Superfamily', 'Epifamily', 'Family', 'Subfamily',
+    'Supertribe', 'Tribe', 'Subtribe', 'Infratribe',
+    'Genus', 'Subgenus', 'Infrageneric name',
+    'Series', 'Subseries',
+    'Species', 'Subspecies', 'Infraspecific name',
+    'Variety', 'Subvariety',
+    'Form', 'Subform', 'Forma specialis',
 ]]
 
 with open(rows_data, 'r') as rows_file:
