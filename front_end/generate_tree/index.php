@@ -147,31 +147,28 @@ $selected_ranks = $new_selected_ranks;
 
 
 //Output the header row
-$line = '';
+$line = [];
 foreach($ranks[$kingdom] as $rank_id => $rank_data){
 
 	if(!in_array($rank_id, $selected_ranks))
 		continue;
 
-	if($line != '')
-		$line .= $column_separator;
-
 	$rank_name = $rank_data[0];
-	$line .= $rank_name;
-	$line .= $column_separator.$rank_name.' GUID';
+	$line []= $rank_name;
+	$line []= $rank_name.' GUID';
 
 	if($include_authors)
-		$line .= $column_separator . $rank_name . ' Author';
+		$line []= $rank_name . ' Author';
 
 	if($include_common_names)
-		$line .= $column_separator . $rank_name . ' Common Name';
+		$line []= $rank_name . ' Common Name';
 
 	//if($fill_in_links)
-		$line .= $column_separator . $rank_name . ' Source';
+		$line []= $rank_name . ' Source';
 
 }
 
-$header_line = $line . $line_separator;
+$header_line = implode($column_separator, $line) . $line_separator;
 
 //send stats data
 if(STATS_URL!=''){
@@ -230,7 +227,7 @@ function show_node(
 	$node,
 	$parent_choice_tree = [],
 	$parent_rank = FALSE,
-	$line = ''
+	$line = []
 ){
 
 	global $column_separator;
@@ -272,38 +269,35 @@ function show_node(
   $local_result = '';
 	if(in_array($rank, $selected_ranks)){//the rank of this element is selected
 
-		if($line != '')
-			$line .= $column_separator;
-
 		if($parent_rank !== FALSE && $ranks[$kingdom][$rank][1] != $parent_rank){//if current $rank is not a direct parent of $parent_rank
 		//var_dump('<br><br>',$node);
-			$line .= handle_missing_ranks($rank, $parent_rank);
+            $line = array_merge($line, handle_missing_ranks($rank, $parent_rank));
 
 			}
 
-		$line .= $node_name.$column_separator.$taxon_number;
+		$line []= $node_name;
+        $line []= $taxon_number;
 
 		if($include_authors)
-			$line .= $column_separator . $node[0][2];
+			$line []= $node[0][2];
 
 		if($include_common_names)
-			$line .= $column_separator . $node[0][1];
+			$line []= $node[0][1];
 
 		if($fill_in_links)
-			$line .= $column_separator . 'https://www.catalogueoflife.org/data/taxon/'. $taxon_number;
+			$line []= 'https://www.catalogueoflife.org/data/taxon/'. $taxon_number;
 		else
-			$line .= $column_separator . $node[0][3];
+			$line []= $node[0][3];
 
-		$local_result .= $line . $line_separator;
+        $local_result .= implode($column_separator, $line) . $line_separator;
 
 		$lines_count++;
 
 	}
 
-  if($line_limit !== FALSE){
+  if($line_limit !== FALSE && $lines_count >= $line_limit){
     $result .= $local_result;
-    if($lines_count >= $line_limit)
-      save_result();
+    save_result();
   }
   
 
@@ -332,7 +326,6 @@ function handle_missing_ranks(
 	global $kingdom;
 	global $ranks;
 	global $selected_ranks;
-	global $column_separator;
 	global $include_authors;
 	global $include_common_names;
 	global $required_ranks;
@@ -341,31 +334,32 @@ function handle_missing_ranks(
 	if($rank == 0)
 		return '';
 
-	$line = '';
+	$line = [];
 	if(!$direct_call && in_array($rank, $selected_ranks)){
 
 		if(in_array($rank, $required_ranks))//show required && missing ranks
-			$line .= 'incertae sedis';
+			$line[]= 'incertae sedis';
+        else
+            $line[] = '';
 
-		$count = 2;
+        // For GUID
+		$line[] = '';
 
 		if($include_authors)
-			$count++;
+            $line[] = '';
 
 		if($include_common_names)
-			$count++;
+            $line[] = '';
 
 		if($fill_in_links)
-			$count++;
-
-		$line .= str_repeat($column_separator, $count);
+            $line[] = '';
 
 	}
 
 	$parent_rank = $ranks[$kingdom][$rank][1];
 
 	if($parent_rank != $target_rank)
-		$line = handle_missing_ranks($parent_rank, $target_rank, FALSE) . $line;
+        $line = array_merge(handle_missing_ranks($parent_rank, $target_rank, FALSE), $line);
 
 	return $line;
 
