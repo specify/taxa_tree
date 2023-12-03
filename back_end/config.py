@@ -1,5 +1,5 @@
 site_link = 'http://localhost:80/'
-target_dir = '/Users/maxxxxxdlp/Downloads/col_taxon'
+target_dir = '/Users/maxpatiiuk/Downloads/col_taxon'
 mysql_host = 'localhost'
 mysql_user = 'root'
 mysql_password = 'root'
