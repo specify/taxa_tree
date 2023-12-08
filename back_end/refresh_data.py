@@ -244,6 +244,7 @@ print('Fixing orders')
 orders_fixed = 0
 
 modified = True
+wrong_order_nodes = []
 while modified:
     modified = False
 
@@ -255,6 +256,12 @@ while modified:
         parent_tsn = row[3]
 
         if parent_tsn not in rows:
+            continue
+
+        if row[1] <= rows[parent_tsn][1]:
+            if row not in wrong_order_nodes:
+                print("Skipping node with wrong rank order. Child:", row, "Parent: ", rows[parent_tsn])
+                wrong_order_nodes.append(row)
             continue
 
         del row[3]

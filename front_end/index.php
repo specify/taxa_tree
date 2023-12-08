@@ -73,7 +73,7 @@ if(!file_exists($rows_location) ||
 
 //Show the tree and other options
 
-$display_down_to = 'Order'; ?>
+$display_down_to = 'Family'; ?>
 
 <h3>Step 2: Choose export data type</h3>
 <label>
@@ -95,7 +95,7 @@ $display_down_to = 'Order'; ?>
 
 	foreach($ranks[$kingdom] as $rank_id => &$rank_data){
 
-		if($rank_data[0]==$display_down_to)
+		if(ucfirst($rank_data[0])==ucfirst($display_down_to))
 			$stop_rank = $rank_id;
 
 		if($parent_rank_id!=0)
