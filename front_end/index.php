@@ -70,7 +70,7 @@ if(!file_exists($rows_location) ||
 if($kingdom==8)
 	$display_down_to = 'Family';
 else
-	$display_down_to = 'Class'; ?>
+	$display_down_to = 'Family'; ?>
 
 <h3>Step 2: Select the nodes you want to have in your database</h3>
 
